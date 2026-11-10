@@ -36,7 +36,7 @@ h2[id]{scroll-margin-top:12px}
 .funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
 .funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
 .funnel .step:nth-child(7){margin:0 12%}
-.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
+.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
 .test{border-top:1px solid var(--line);padding:8px 0}.test .row{margin-bottom:2px}.test .badge{margin-left:4px;font-size:11px}
 .funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
 font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px}
@@ -201,7 +201,12 @@ font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:c
 <li><b>Buy candidates:</b> passed every gate with score &ge; 60 in a RISK-ON market. Includes the trade plan.</li>
 <li><b>Your watchlist:</b> each stock from watchlist.txt with tier, red-flag badge, stop and a plain-English verdict of why it is or isn't a buy.</li>
 <li><b>Red-flag check:</b> details for checked names: estimate revisions, analyst actions and flagged headlines (tap to read).</li>
-<li><b>Watch list:</b> stocks that pass the gates with a lower score, or are one gate short of a BUY (the "Missing" column says which). Today's watch list is tomorrow's candidates.</li>
+<li><b>Watch list:</b> stocks that are close to a BUY but not there yet. A stock lands here for one of two reasons:
+<ul>
+<li><b>It passes every gate, but scores 40&ndash;59.</b> It's a qualified leader without enough confirmation yet.</li>
+<li><b>It scores 60+, but misses exactly one gate.</b> Most often that's the market regime (CAUTION), or being too stretched above its 50-day average.</li>
+</ul>
+The <b>"What it needs to become a BUY"</b> column spells it out in plain English, such as "Ready except for the market: needs the market regime to turn RISK-ON" or "Needs 8 more score points (now 52), e.g. from a Wyckoff sign of strength (+15)". Watch-list stocks are not trades; they're the likeliest next candidates. Do nothing until one becomes a BUY.</li>
 <li><b>Funds (vs SPY):</b> which part of the market is leading. Context, not trades.</li>
 <li><b>History:</b> past reports and the signal log.</li>
 </ul></div>
@@ -221,7 +226,8 @@ font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:c
 <tr><td class="tk">Mom rank</td><td>12-month return (skipping the latest month), ranked 0&ndash;100 within the NASDAQ-100. Needs 50+.</td></tr>
 <tr><td class="tk">Off high</td><td>% below its 52-week high. Needs 25% or less.</td></tr>
 <tr><td class="tk">Wyckoff</td><td>Volume pattern found in the last 90 days: SC = selling climax, ST = secondary test on lighter volume, SOS = sign of strength, * = SOS closed above the rally high. Earnings reactions and 4%+ gap-ups never count as SOS.</td></tr>
-<tr><td class="tk">Missing / Failed</td><td>Which gate(s) it didn't pass (section 8)</td></tr>
+<tr><td class="tk">What it needs</td><td>Watch list only: what's missing before it becomes a BUY, in plain English</td></tr>
+<tr><td class="tk">Missing / Failed</td><td>Which gate(s) it didn't pass (section 8); shown in the fund table and the CSV</td></tr>
 <tr><td class="tk">PxBox / RSBox</td><td>P&amp;F box sizes used (CSV only): set per stock from its volatility</td></tr>
 </tbody></table></div>
 

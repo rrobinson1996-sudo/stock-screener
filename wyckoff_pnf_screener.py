@@ -537,6 +537,54 @@ def evaluate(ticker, df, rs, d, mom_pct_val, risk_on, ed, cfg):
 
 
 # =====================================================================  LIVE SCREENER
+NEEDS_TEXT = {
+    "Regime": "the market regime to turn RISK-ON (QQQ back above trend)",
+    "Trend": "a confirmed uptrend (above a rising 200-day and its 50-day, within 25% of its high)",
+    "Momentum": "12-month momentum to reach the top half of the NASDAQ-100",
+    "RS_PnF": "a relative-strength buy signal vs QQQ",
+    "NotExtended": "a pullback toward its 50-day average (it's too stretched to buy now)",
+    "NoEarnings": "its earnings report to pass (due within 7 days)",
+    "Volatility": "volatility to calm down (daily range over 6% of price)",
+    "Liquidity": "more trading volume",
+}
+
+
+def watch_needs(row, cfg=CONFIG):
+    """Plain-English reason a WATCH stock isn't a BUY yet, and what would change that."""
+    failed = [f for f in str(row.get("Failed") or "").split(",") if f]
+    score = float(row.get("Score") or 0)
+    parts = [NEEDS_TEXT.get(f, f) for f in failed]
+    if score < cfg["buy_score"]:
+        gap = cfg["buy_score"] - score
+        rs_col, rs_sig = (str(row.get("RS") or "-/-").split("/") + ["-"])[:2]
+        px_sig = str(row.get("Px") or "-/-").split("/")[-1]
+        wy = str(row.get("Wyckoff") or "")
+        bars = row.get("RS_BarsAgo")
+        off = float(row.get("OffHigh") or 100)
+        options = []
+        if "SOS" not in wy:
+            options.append(("a Wyckoff sign of strength", 15))
+        if ">ST" not in wy:
+            options.append(("a Wyckoff secondary test", 10))
+        if px_sig != "BUY":
+            options.append(("a price P&F breakout", 10))
+        if off > 10:
+            options.append(("a move to within 10% of its high", 10 if off > 15 else 5))
+        if rs_col != "X":
+            options.append(("the RS chart turning back up", 5))
+        options.sort(key=lambda o: -o[1])
+        hint = ", ".join(f"{n} (+{p})" for n, p in options[:2])
+        need = max(1, int(np.ceil(gap - 1e-9)))
+        now = f"{score:.1f}".rstrip("0").rstrip(".")
+        parts.append(f"{need} more score point{'s' if need > 1 else ''} (now {now})"
+                     + (f", e.g. from {hint}" if hint else ""))
+    if not parts:
+        return ""
+    if failed == ["Regime"] and score >= cfg["buy_score"]:
+        return "Ready except for the market: needs " + parts[0] + "."
+    return "Needs " + "; ".join(parts) + "."
+
+
 def run_screener(cfg=CONFIG, tickers=None, data=None, earnings=None):
     print(f"[{datetime.now():%Y-%m-%d %H:%M}] RS leadership screener vs {cfg['benchmark']}")
     tickers = tickers or load_nasdaq100()
@@ -569,6 +617,7 @@ def run_screener(cfg=CONFIG, tickers=None, data=None, earnings=None):
         return None
 
     res = pd.DataFrame(rows).sort_values("Score", ascending=False).reset_index(drop=True)
+    res["Needs"] = [watch_needs(r, cfg) if r["Tier"] == "WATCH" else "" for _, r in res.iterrows()]
     pd.set_option("display.width", 250)
     pd.set_option("display.max_columns", 30)
 
@@ -587,6 +636,8 @@ def run_screener(cfg=CONFIG, tickers=None, data=None, earnings=None):
     print(" WATCH LIST  (passes gates with lower score, or one gate short)")
     print("=" * 90)
     print(watch[show + ["Failed"]].to_string(index=False) if not watch.empty else "None.")
+    for _, r in watch.iterrows():
+        print(f"  {r['Ticker']:6s} {r['Needs']}")
 
     gate_cols = ["Liquidity", "Trend", "Momentum", "RS_PnF", "NotExtended", "NoEarnings",
                  "Volatility", "Regime"]

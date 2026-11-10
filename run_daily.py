@@ -107,6 +107,8 @@ def table(df, cols):
             v = r.get(c)
             if kind == "badge":
                 cells.append(f"<td>{badge(v)}</td>")
+            elif kind == "need":
+                cells.append(f'<td class="need">{esc(v)}</td>')
             elif kind == "ticker":
                 cells.append(f'<td class="tk">{esc(v)}</td>')
             else:
@@ -207,7 +209,7 @@ h2[id]{scroll-margin-top:12px}
 .funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
 .funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
 .funnel .step:nth-child(7){margin:0 12%}
-.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
+.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
 .test{border-top:1px solid var(--line);padding:8px 0}.test .row{margin-bottom:2px}.test .badge{margin-left:4px;font-size:11px}
 .funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
 font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px}
@@ -233,7 +235,7 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
                 ("Close", "Close", "money"), ("Stop", "Stop", "money"), ("RiskPct", "Risk", "pct"),
                 ("Objective", "Target", "money"), ("Upside", "Upside", "pct"),
                 ("NextEarn", "Next earnings", None), ("Wyckoff", "Wyckoff", None)]
-    watch_cols = [("Ticker", "Ticker", "ticker"), ("Score", "Score", "int"), ("Failed", "Missing", None),
+    watch_cols = [("Ticker", "Ticker", "ticker"), ("Score", "Score", "int"), ("Needs", "What it needs to become a BUY", "need"),
                   ("News", "Red flags", "badge"), ("Close", "Close", "money"), ("RS", "RS P&F", None),
                   ("MomPct", "Mom rank", "int"), ("OffHigh", "Off high", "pct"), ("Wyckoff", "Wyckoff", None)]
     fund_cols = [("Ticker", "Fund", "ticker"), ("Tier", "Tier", "badge"), ("Score", "Score", "int"),
@@ -304,6 +306,7 @@ signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ 
 <li><b>Red flags decide, not the score:</b><br>
 {clean} take it &nbsp;·&nbsp; {review} read the headlines (skip ones about other companies) &nbsp;·&nbsp;
 {veto} skip or wait &mdash; estimates are being cut or deal news is driving the price &nbsp;·&nbsp; {nodata} check the news yourself</li>
+<li><b>WATCH = on deck, not a buy.</b> These stocks are close: they pass the gates with a lower score, or score 60+ but miss exactly one gate. The <b>"What it needs"</b> column says what's missing (for example "the market regime to turn RISK-ON" or "a pullback toward its 50-day"). Do nothing until it becomes a BUY.</li>
 <li><b>Never add a stock the screener didn't flag</b>, however good the press is.</li>
 </ul></div>
 
