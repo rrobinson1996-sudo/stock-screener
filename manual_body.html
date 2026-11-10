@@ -13,6 +13,7 @@
 <li><a href="#rules">The Strategy Rules</a></li>
 <li><a href="#flags">Red-Flag Check</a></li>
 <li><a href="#watchlist">Watchlist and Phone Commands</a></li>
+<li><a href="#positions">Your Positions</a></li>
 <li><a href="#colab">Using Colab</a></li>
 <li><a href="#settings">Changing Settings</a></li>
 <li><a href="#evidence">What the Backtest Showed</a></li>
@@ -247,7 +248,28 @@ The <b>"What it needs to become a BUY"</b> column spells it out in plain English
 <li>Keep both topic names private. Every watchlist change is in GitHub history, so it can be undone.</li>
 </ul></div>
 
-<h2 id="colab">11. Using Colab</h2>
+<h2 id="positions">11. Your Positions</h2>
+<div class="card">
+<p>Your holdings live in a private Google Sheet, <b>Screener Positions</b>. After every daily run the system checks each one and writes a recommended action back into the sheet. The action also goes into your notification. Positions never appear on the public report site.</p>
+<p><b>You Fill In</b> (yellow headers): Ticker, Account, Entry date, Entry price, Shares, Stop (from the report on the day you bought; it never moves), Notes. Add a row when you buy; delete it when you sell.</p>
+<p><b>The System Fills In</b> (gray headers): Last close, Days held, Health, Action, Why, Updated, plus formulas for Gain %, Value and $ at risk to stop.</p>
+<p><b>Health:</b> <b>Strong</b> = it would still qualify as a BUY (ignoring the market regime) · <b>Fading</b> = still in trend but scoring under 60 · <b>Broken</b> = the uptrend broke or its relative-strength chart vs QQQ flipped to SELL.</p>
+<p><b>One Action per Position</b>, checked in this order:</p>
+<div class="scroll"><table class="wrap"><thead><tr><th>Check</th><th>Action</th></tr></thead><tbody>
+<tr><td class="tk">Stop hit</td><td>SELL at the next open (delete the row if your stop order already filled)</td></tr>
+<tr><td class="tk">Health broken</td><td>SELL: leadership has faded</td></tr>
+<tr><td class="tk">Earnings within 7 days</td><td>HOLD THROUGH EARNINGS if your gain is at least your stop distance; otherwise SELL BEFORE EARNINGS</td></tr>
+<tr><td class="tk">Red flag VETO?</td><td>HOLD (stop unchanged) if health is strong; SELL if fading</td></tr>
+<tr><td class="tk">60-day review</td><td>EXTEND 60 DAYS if strong; SELL if fading</td></tr>
+<tr><td class="tk">Target met</td><td>HOLD, stop unchanged: winners carry the results</td></tr>
+<tr><td class="tk">Fresh BUY again</td><td>ADD (OPTIONAL), only within the 1% risk budget</td></tr>
+<tr><td class="tk">Everything else</td><td>No action, with a status line (day count, gain, distance to stop)</td></tr>
+</tbody></table></div>
+<p class="small" style="margin-top:8px">An empty sheet reports "Positions: none in your sheet." A row missing its entry date, price or stop shows FIX ROW. Any SELL puts the ticker at the front of the notification title at top priority.</p>
+<p class="small muted">The stop and 60-day hold are backtested; the earnings, red-flag and 60-day extension rules are judgment calls, not yet tested on their own.</p>
+</div>
+
+<h2 id="colab">12. Using Colab</h2>
 <div class="card">
 <p><b>Cell 1 (Run First, and After Any Restart):</b> loads the latest code from GitHub:</p>
 <pre>!wget -q -O wyckoff_pnf_screener.py https://raw.githubusercontent.com/rrobinson1996-sudo/stock-screener/main/wyckoff_pnf_screener.py
@@ -269,7 +291,7 @@ out = check_stocks(TICKERS)</pre>
 <p class="small"><b>Fund Mode Backtest:</b> <code>run_backtest(dict(CONFIG, benchmark="SPY", use_earnings=False, require_risk_on=False, min_dollar_vol=10e6), tickers=[...ETFs...])</code></p>
 <p class="small muted">"NameError: ... is not defined" means cell 1 hasn't run since Colab restarted. Run it again.</p></div>
 
-<h2 id="settings">12. Changing Settings</h2>
+<h2 id="settings">13. Changing Settings</h2>
 <div class="card">
 <p>All settings are in <b>CONFIG</b> at the top of <b>wyckoff_pnf_screener.py</b> on GitHub. Edit with the pencil icon &rarr; Commit changes. The next daily run uses them; rerun Colab cell 1 before backtesting.</p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Setting</th><th>Now</th><th>Effect</th></tr></thead><tbody>
@@ -287,7 +309,7 @@ out = check_stocks(TICKERS)</pre>
 <p class="small" style="margin-top:8px"><b>Other Files:</b> watchlist.txt (your list) · run_daily.py (report, fund list, cheat sheet) · commands.py (phone commands, limits) · .github/workflows/ (schedules).</p>
 <p class="small"><b>Rule:</b> don't change settings because of a bad week or to make a backtest look better. When we reweighted the score to fit 3 years of results, it did worse over 5 years. Change one thing, backtest it, and lock it.</p></div>
 
-<h2 id="evidence">13. What the Backtest Showed</h2>
+<h2 id="evidence">14. What the Backtest Showed</h2>
 <div class="card">
 <p class="small muted">Weekly evaluations, Aug 2021 &ndash; Aug 2026, current NASDAQ-100 members, 60-day holds, before costs. Survivorship bias flatters everything, so compare against the baseline, not zero.</p>
 <div class="scroll"><table><thead><tr><th>60 days after signal</th><th>Baseline</th><th>BUY new entries</th></tr></thead><tbody>
@@ -306,7 +328,7 @@ out = check_stocks(TICKERS)</pre>
 <li><b>Funds:</b> ranking ETFs vs SPY added only 1&ndash;2 points, and stops didn't help.</li>
 </ul></div>
 
-<h2 id="decisions">14. Decisions We Made (and Why)</h2>
+<h2 id="decisions">15. Decisions We Made (and Why)</h2>
 <div class="card"><ul class="small">
 <li><b>Rewrote the original Gemini code:</b> its "target hit" signal was fake, breakouts weren't real double tops, Wyckoff events weren't required to happen in order, and errors were silently hidden.</li>
 <li><b>Added momentum, trend and regime gates</b> with long research records; Wyckoff became a scoring bonus, not a requirement.</li>
@@ -321,7 +343,7 @@ out = check_stocks(TICKERS)</pre>
 <li><b>Crypto:</b> only BTC/ETH have a reasonable case, as a small slice. Altcoins fail the volatility gate and are mostly gambling.</li>
 </ul></div>
 
-<h2 id="trouble">15. Troubleshooting</h2>
+<h2 id="trouble">16. Troubleshooting</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Problem</th><th>Fix</th></tr></thead><tbody>
 <tr><td class="tk">Run shows a red X / "Screener FAILED" notification</td><td>Actions &rarr; open the failed run &rarr; click the red step &rarr; copy the log and ask Claude. Often Yahoo throttling: just Re-run.</td></tr>
 <tr><td class="tk">No notification</td><td>Check the NTFY_TOPIC secret matches the app's topic exactly (no spaces). Check the run succeeded.</td></tr>
@@ -331,15 +353,18 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">Stocks tracked card is amber or red</td><td>Part of the price download failed (Yahoo throttling). Re-run from the Actions tab later; don&#39;t act on a red day&#39;s lists.</td></tr>
 <tr><td class="tk">A stock I expected isn&#39;t listed</td><td>Open All Scores and search it: the reason says exactly which rule it misses.</td></tr>
 <tr><td class="tk">Yellow note: roster fallback</td><td>Nasdaq.com blocked the download; only 30 backup tickers were screened. Usually fixes itself next run.</td></tr>
+<tr><td class="tk">Notification says "couldn&#39;t open your sheet"</td><td>The sheet isn&#39;t shared with the service account&#39;s email (as Editor), or a secret is missing or mistyped.</td></tr>
 <tr><td class="tk">Colab NameError</td><td>Run cell 1 again (Colab restarted).</td></tr>
 <tr><td class="tk">Scheduled runs stopped</td><td>GitHub pauses schedules after 60 days without repo activity. The daily report commits normally prevent this; if it happens, Actions &rarr; enable the workflow.</td></tr>
 <tr><td class="tk">Node.js / Ubuntu warnings on runs</td><td>Harmless GitHub announcements.</td></tr>
 </tbody></table></div>
 
-<h2 id="setup">16. Setup Reference</h2>
+<h2 id="setup">17. Setup Reference</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Where (repo Settings)</th><th>Name</th><th>Value</th></tr></thead><tbody>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_TOPIC</td><td>Report topic name</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_CMD_TOPIC</td><td>Command topic name</td></tr>
+<tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">GOOGLE_SA_JSON</td><td>The full contents of the service-account key file (for the positions sheet)</td></tr>
+<tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">POSITIONS_SHEET_ID</td><td>The long ID in the Screener Positions sheet&#39;s web address</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Variables</td><td class="tk">NOTIFY_ONLY_ON_BUY</td><td>Optional: true = notify only on BUY days</td></tr>
 <tr><td>Pages</td><td class="tk">Source</td><td>Deploy from a branch &rarr; main &rarr; /docs</td></tr>
 <tr><td>Actions &rarr; General</td><td class="tk">Workflow permissions</td><td>Read and write</td></tr>

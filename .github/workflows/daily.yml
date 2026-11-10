@@ -32,6 +32,8 @@ jobs:
       - name: Run screener and build report
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+          POSITIONS_SHEET_ID: ${{ secrets.POSITIONS_SHEET_ID }}
           NOTIFY_ONLY_ON_BUY: ${{ vars.NOTIFY_ONLY_ON_BUY }}
           REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: python run_daily.py

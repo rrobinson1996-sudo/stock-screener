@@ -747,9 +747,25 @@ def main():
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 
     title, body, prio, has_buy = summary(stocks, funds, mine)
+
+    # Positions you hold (private Google Sheet). Results go to the sheet and the
+    # notification only, never to the public report.
+    try:
+        import positions as P
+        pres, sells, pline = P.run_positions(S, cfg, data, tickers)
+    except Exception as e:
+        print(f"Positions check failed: {type(e).__name__}: {e}")
+        pres, sells, pline = None, [], f"Positions: check failed ({type(e).__name__})."
+    if pline:
+        body = pline + "\n" + body
+    if sells:
+        title = f"SELL {', '.join(sells[:3])} | " + title
+        prio = max(prio, 5)
+    pos_action = bool(pres) and any(r["action"] != "No action" for r in pres)
+
     if notes:
         body += "\nNote: " + " ".join(notes)
-    if has_buy or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
+    if has_buy or pos_action or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
         url = os.environ.get("REPORT_URL")
         notify(title, body, prio, click=url, cheat=(url.rstrip("/") + "/cheatsheet.html") if url else None)
 
