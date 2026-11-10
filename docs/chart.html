@@ -46,7 +46,7 @@ main>.row:first-child{flex-wrap:wrap;row-gap:2px}main>.row:first-child h1{margin
 .g{stroke:var(--line);stroke-width:.6}.x,.xs{stroke:var(--good);stroke-width:1.6;fill:none;stroke-linecap:round}.xs{stroke-width:2.6}
 .o,.os{stroke:var(--bad);stroke-width:1.6;fill:none}.os{stroke-width:2.6}
 .ax,.mo,.yr,.ml{fill:var(--muted);font-size:9px;font-family:-apple-system,Segoe UI,Roboto,sans-serif}.yr{font-weight:700}
-.m{stroke-dasharray:3 3;stroke-width:1.2}.m.now{stroke:var(--fg)}.ml.now{fill:var(--fg)}
+.pt{font-size:8px;font-weight:700;font-family:-apple-system,Segoe UI,Roboto,sans-serif}.pt.bull{fill:var(--good)}.pt.bear{fill:var(--bad)}.pt.info{fill:var(--muted)}.pat{margin:4px 0 6px}.m{stroke-dasharray:3 3;stroke-width:1.2}.m.now{stroke:var(--fg)}.ml.now{fill:var(--fg)}
 .m.stop{stroke:var(--bad)}.ml.stop{fill:var(--bad)}.m.tgt{stroke:var(--good)}.ml.tgt{fill:var(--good)}
 select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px;margin:10px 0}
 </style></head><body><main>
@@ -61,16 +61,71 @@ select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10
 <li><b>Relative-strength chart:</b> the stock divided by QQQ. Rising X's mean it's beating the index, the core leadership test.</li>
 <li><b>Why the two charts use different box sizes:</b> each box is sized to how much that line normally moves, so a signal means the same thing on a calm stock and a volatile one. The price box is 1&times; the stock's average daily range (ATR over 20 days) as a percent of price. The relative-strength line has no daily high or low, so its box is 1.5&times; its average daily move over 100 days. It usually moves less than the price, so its boxes are often smaller. Both are rounded to 0.25% and kept between 0.5% and 6%, and they're set fresh each day from the latest data.</li>
 <li>The chart opens at the latest column; swipe left to see history.</li></ul></div>
+<div class="card" style="margin-top:12px"><div class="label">Chart Patterns (for learning only)</div>
+<p class="small muted">Named P&amp;F patterns are marked on the charts with short codes so you can learn to recognize them. They don&#39;t change any score or decision; buy and sell decisions come only from the report.</p>
+<div class="scroll"><table class="wrap"><thead><tr><th>Code</th><th>Pattern</th><th>What it shows</th></tr></thead><tbody>
+<tr><td class="tk" style="color:var(--good)">DT</td><td>Double top breakout</td><td>An X column rises above the previous X column. The basic P&amp;F buy signal.</td></tr>
+<tr><td class="tk" style="color:var(--good)">TT</td><td>Triple top breakout</td><td>Breaks above two earlier highs at the same level: more selling was absorbed before it broke through.</td></tr>
+<tr><td class="tk" style="color:var(--good)">STT</td><td>Spread triple top</td><td>A triple top whose two earlier highs are farther apart, with a lower high between them.</td></tr>
+<tr><td class="tk" style="color:var(--good)">CAT</td><td>Bullish catapult</td><td>A triple top breakout, a small pullback, then another breakout: the move continuing.</td></tr>
+<tr><td class="tk" style="color:var(--good)">BSR</td><td>Bearish signal reversed</td><td>A sell signal that immediately failed: the next X column broke back above the prior high.</td></tr>
+<tr><td class="tk" style="color:var(--good)">LP</td><td>Low pole</td><td>A sharp drop to a new low, then a rebound of at least half of it: sellers may be exhausted.</td></tr>
+<tr><td class="tk" style="color:var(--bad)">DB</td><td>Double bottom breakdown</td><td>An O column falls below the previous O column. The basic P&amp;F sell signal.</td></tr>
+<tr><td class="tk" style="color:var(--bad)">TB</td><td>Triple bottom breakdown</td><td>Breaks below two earlier lows at the same level.</td></tr>
+<tr><td class="tk" style="color:var(--bad)">STB</td><td>Spread triple bottom</td><td>A triple bottom whose two earlier lows are farther apart.</td></tr>
+<tr><td class="tk" style="color:var(--bad)">BCAT</td><td>Bearish catapult</td><td>A triple bottom breakdown, a small bounce, then another breakdown.</td></tr>
+<tr><td class="tk" style="color:var(--bad)">BUSR</td><td>Bullish signal reversed</td><td>A buy signal that immediately failed: the next O column broke below the prior low.</td></tr>
+<tr><td class="tk" style="color:var(--bad)">HP</td><td>High pole</td><td>A tall rally to a new high, then a pullback of more than half of it: the rally may be fading.</td></tr>
+<tr><td class="tk" style="color:var(--muted)">LT</td><td>Long tail down</td><td>A drop of 20 or more boxes in one column, often a washout near a low.</td></tr>
+</tbody></table></div>
+<p class="small muted" style="margin-top:6px">Green codes sit above the column (bullish), red below (bearish). The chart shows about the last 60 columns, so a pattern that started earlier may not be labeled.</p></div>
 </main><script>
 const C=12,L=58,T=8,B=28;
 const q=new URLSearchParams(location.search);let tk=(q.get('t')||'').toUpperCase();
 function fmtP(v){return v>=1000?v.toFixed(0):v>=100?v.toFixed(1):v.toFixed(2);}
+const PATS={
+ DT:['Double top breakout','bull'],TT:['Triple top breakout','bull'],STT:['Spread triple top breakout','bull'],
+ CAT:['Bullish catapult','bull'],BSR:['Bearish signal reversed','bull'],LP:['Low pole','bull'],
+ DB:['Double bottom breakdown','bear'],TB:['Triple bottom breakdown','bear'],STB:['Spread triple bottom breakdown','bear'],
+ BCAT:['Bearish catapult','bear'],BUSR:['Bullish signal reversed','bear'],HP:['High pole','bear'],LT:['Long tail down','info']};
+function patterns(cols){
+ const N=cols.length,out=[],X=i=>i>=0&&i<N&&cols[i][0]===1,O=i=>i>=0&&i<N&&cols[i][0]===0,
+  top=i=>cols[i][2],bot=i=>cols[i][1],at=(i,codes)=>out.some(p=>p.i===i&&codes.includes(p.code));
+ for(let i=0;i<N;i++){
+  if(X(i)&&X(i-2)&&top(i)>top(i-2)){
+   let c='DT';
+   if(X(i-4)&&top(i-4)===top(i-2))c='TT';
+   else if(X(i-6)&&top(i-6)===top(i-2)&&top(i-4)<top(i-2))c='STT';
+   else if(at(i-2,['TT','STT']))c='CAT';
+   else if(O(i-1)&&O(i-3)&&bot(i-1)<bot(i-3))c='BSR';
+   out.push({i,code:c});
+  }
+  if(O(i)&&O(i-2)&&bot(i)<bot(i-2)){
+   let c='DB';
+   if(O(i-4)&&bot(i-4)===bot(i-2))c='TB';
+   else if(O(i-6)&&bot(i-6)===bot(i-2)&&bot(i-4)>bot(i-2))c='STB';
+   else if(at(i-2,['TB','STB']))c='BCAT';
+   else if(X(i-1)&&X(i-3)&&top(i-1)>top(i-3))c='BUSR';
+   out.push({i,code:c});
+  }
+  if(O(i)&&top(i)-bot(i)+1>=20)out.push({i,code:'LT'});
+  if(O(i)&&X(i-1)&&X(i-3)&&top(i-1)>=top(i-3)+3&&bot(i)<=(top(i-1)+bot(i-1))/2)out.push({i,code:'HP'});
+  if(X(i)&&O(i-1)&&O(i-3)&&bot(i-1)<=bot(i-3)-3&&top(i)>=(top(i-1)+bot(i-1))/2)out.push({i,code:'LP'});
+ }
+ return out;
+}
+function patLine(ch){
+ const ps=patterns(ch.cols),N=ch.cols.length,recent=ps.filter(p=>p.i>=N-6);
+ if(!recent.length)return 'No named pattern in the last few columns.';
+ const p=recent[recent.length-1],ago=N-1-p.i;
+ return `Recent pattern: <b>${PATS[p.code][0]}</b> (${ago===0?'latest column':ago+' column'+(ago>1?'s':'')+' ago'}).`;
+}
 function svg(ch,marks){
  const cols=ch.cols,lb=Math.log(1+ch.box);let lo=1e9,hi=-1e9;
  cols.forEach(c=>{lo=Math.min(lo,c[1]);hi=Math.max(hi,c[2]);});
  marks=marks.filter(m=>m.price>0).map(m=>Object.assign({lvl:Math.floor(Math.log(m.price)/lb+1e-9)},m))
   .filter(m=>m.lvl>=lo-15&&m.lvl<=hi+15);
- marks.forEach(m=>{lo=Math.min(lo,m.lvl);hi=Math.max(hi,m.lvl);});lo-=1;hi+=1;
+ marks.forEach(m=>{lo=Math.min(lo,m.lvl);hi=Math.max(hi,m.lvl);});lo-=3;hi+=3;
  const n=hi-lo+1,gw=cols.length*C,W=L+gw+50,H=T+n*C+B;
  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
  for(let r=0;r<=n;r++){const y=T+r*C;s+=`<line x1="${L}" y1="${y}" x2="${L+gw}" y2="${y}" class="g"/>`;}
@@ -78,15 +133,20 @@ function svg(ch,marks){
  const step=Math.max(1,Math.ceil(n/16));
  for(let l=hi;l>=lo;l--){if((hi-l)%step)continue;const y=T+(hi-l)*C+C/2+3;
   s+=`<text x="${L-5}" y="${y}" text-anchor="end" class="ax">${fmtP(Math.pow(1+ch.box,l))}</text>`;}
- let prev=null;
+ let prev=null,lastYr=-1e9;
  cols.forEach((c,i)=>{const x=L+i*C;
   for(let l=c[1];l<=c[2];l++){const y=T+(hi-l)*C;
    if(c[0])s+=`<path d="M${x+2.5} ${y+2.5}L${x+C-2.5} ${y+C-2.5}M${x+C-2.5} ${y+2.5}L${x+2.5} ${y+C-2.5}" class="${c[4]?'xs':'x'}"/>`;
    else s+=`<circle cx="${x+C/2}" cy="${y+C/2}" r="${C/2-2.5}" class="${c[4]?'os':'o'}"/>`;}
   if(c[3]!==prev){const mo=+c[3].slice(5),code=mo<10?mo:'ABC'[mo-10];
    s+=`<text x="${x+C/2}" y="${T+n*C+11}" text-anchor="middle" class="mo">${code}</text>`;
-   if(prev===null||c[3].slice(0,4)!==prev.slice(0,4))s+=`<text x="${x}" y="${T+n*C+23}" class="yr">${c[3].slice(0,4)}</text>`;prev=c[3];}
+   if((prev===null||c[3].slice(0,4)!==prev.slice(0,4))&&x-lastYr>=30){s+=`<text x="${x}" y="${T+n*C+23}" class="yr">${c[3].slice(0,4)}</text>`;lastYr=x;}prev=c[3];}
  });
+ const stack={};
+ patterns(cols).forEach(p=>{const kind=PATS[p.code][1],up=kind==='bull',c=cols[p.i],key=p.i+(up?'u':'d');
+  const k=stack[key]=(stack[key]||0)+1,x=L+p.i*C+C/2;
+  const y=up?T+(hi-c[2])*C-3-(k-1)*9:T+(hi-c[1]+1)*C+8+(k-1)*9;
+  s+=`<text x="${x}" y="${y}" text-anchor="middle" class="pt ${kind}">${p.code}</text>`;});
  marks.forEach(m=>{const y=T+(hi-m.lvl)*C+C/2;
   s+=`<line x1="${L}" y1="${y}" x2="${L+gw+3}" y2="${y}" class="m ${m.cls}"/><text x="${L+gw+6}" y="${y+3}" class="ml ${m.cls}">${m.label}</text>`;});
  return s+'</svg>';
@@ -101,8 +161,8 @@ function show(d){
  let h=`<div class="card"><div class="row"><span class="tk big" style="font-size:22px">${tk}</span><span>${badge(s.tier)} ${badge(s.flags)} <b style="font-size:18px;margin-left:4px">${s.score!=null?Math.round(s.score):''}</b></span></div>
  <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
  if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
-  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
- if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${d.benchmark}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
+  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="small pat">${patLine(s.px)}</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
+ if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${d.benchmark}</div><div class="small pat">${patLine(s.rs)}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
  el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
 }
 fetch('data/pnf.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
