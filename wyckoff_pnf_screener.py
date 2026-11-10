@@ -332,29 +332,29 @@ def build_pnf(series, box_pct, reversal):
         up, dn = int(np.floor(v)), int(np.ceil(v))
         if not cols:
             if up >= base + 1:
-                cols.append(dict(type="X", bottom=base, top=up, sig=False, i0=i))
+                cols.append(dict(type="X", bottom=base, top=up, sig=False, i0=i, ie=i))
             elif dn <= base - 1:
-                cols.append(dict(type="O", top=base, bottom=dn, sig=False, i0=i))
+                cols.append(dict(type="O", top=base, bottom=dn, sig=False, i0=i, ie=i))
             continue
         c = cols[-1]
         if c["type"] == "X":
             if up > c["top"]:
-                c["top"] = up
+                c["top"], c["ie"] = up, i
             elif dn <= c["top"] - reversal:
-                cols.append(dict(type="O", top=c["top"] - 1, bottom=dn, sig=False, i0=i))
+                cols.append(dict(type="O", top=c["top"] - 1, bottom=dn, sig=False, i0=i, ie=i))
         else:
             if dn < c["bottom"]:
-                c["bottom"] = dn
+                c["bottom"], c["ie"] = dn, i
             elif up >= c["bottom"] + reversal:
-                cols.append(dict(type="X", bottom=c["bottom"] + 1, top=up, sig=False, i0=i))
+                cols.append(dict(type="X", bottom=c["bottom"] + 1, top=up, sig=False, i0=i, ie=i))
         c = cols[-1]
         if len(cols) >= 3 and not c["sig"]:
             prior = cols[-3]
             if c["type"] == "X" and c["top"] > prior["top"]:
-                c["sig"] = True
+                c["sig"], c["si"] = True, i
                 signals.append(("BUY", dates[i], i, prior["top"] + 1))   # breakout level
             elif c["type"] == "O" and c["bottom"] < prior["bottom"]:
-                c["sig"] = True
+                c["sig"], c["si"] = True, i
                 signals.append(("SELL", dates[i], i, prior["bottom"] - 1))
     return cols, signals, len(s)
 
@@ -366,8 +366,12 @@ def pnf_chart_data(series, box_pct, reversal, max_cols=60):
     if not cols:
         return None
     dates = s.index
+    def day(i):
+        return pd.Timestamp(dates[i]).strftime("%Y-%m-%d") if i is not None else ""
+    # [X=1/O=0, bottom, top, start month, signal?, signal date, date of last box]
     out = [[1 if c["type"] == "X" else 0, int(c["bottom"]), int(c["top"]),
-            pd.Timestamp(dates[c.get("i0", 0)]).strftime("%Y-%m"), 1 if c["sig"] else 0]
+            pd.Timestamp(dates[c.get("i0", 0)]).strftime("%Y-%m"), 1 if c["sig"] else 0,
+            day(c.get("si")), day(c.get("ie"))]
            for c in cols[-max_cols:]]
     last = sigs[-1] if sigs else None
     return dict(box=round(float(box_pct), 5), rev=int(reversal), cols=out,

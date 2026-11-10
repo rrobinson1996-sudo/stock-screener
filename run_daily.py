@@ -492,11 +492,21 @@ function patterns(cols){
  }
  return out;
 }
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtD(s){if(!s)return '';const [y,m,d]=s.split('-');return d?`${MON[+m-1]} ${+d}, ${y}`:`${MON[+m-1]} ${y}`;}
+function patDate(ch,p){const c=ch.cols[p.i],brk=!['HP','LP','LT'].includes(p.code);
+ return (brk&&c[5])?c[5]:(c[6]||c[3]);}
 function patLine(ch){
  const ps=patterns(ch.cols),N=ch.cols.length,recent=ps.filter(p=>p.i>=N-6);
  if(!recent.length)return 'No named pattern in the last few columns.';
  const p=recent[recent.length-1],ago=N-1-p.i;
- return `Recent pattern: <b>${PATS[p.code][0]}</b> (${ago===0?'latest column':ago+' column'+(ago>1?'s':'')+' ago'}).`;
+ return `Recent pattern: <b>${PATS[p.code][0]}</b> on <b>${fmtD(patDate(ch,p))}</b> (${ago===0?'latest column':ago+' column'+(ago>1?'s':'')+' ago'}).`;
+}
+function patList(ch){
+ const ps=patterns(ch.cols).slice().reverse();
+ if(!ps.length)return '';
+ const rows=ps.slice(0,10).map(p=>`<tr><td class="num">${fmtD(patDate(ch,p))}</td><td class="tk pt-${PATS[p.code][1]}">${p.code}</td><td>${PATS[p.code][0]}</td></tr>`).join('');
+ return `<details class="plist"><summary class="small">Patterns on this chart (${ps.length}), newest first</summary><div class="scroll"><table><tbody>${rows}</tbody></table></div></details>`;
 }
 function svg(ch,marks){
  const cols=ch.cols,lb=Math.log(1+ch.box);let lo=1e9,hi=-1e9;
@@ -539,8 +549,8 @@ function show(d){
  let h=`<div class="card"><div class="row"><span class="tk big" style="font-size:22px">${tk}</span><span>${badge(s.tier)} ${badge(s.flags)} <b style="font-size:18px;margin-left:4px">${s.score!=null?Math.round(s.score):''}</b></span></div>
  <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
  if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
-  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="small pat">${patLine(s.px)}</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
- if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${d.benchmark}</div><div class="small pat">${patLine(s.rs)}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
+  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="small pat">${patLine(s.px)}</div><div class="scroll ch">${svg(s.px,mk)}</div>${patList(s.px)}`;}
+ if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${d.benchmark}</div><div class="small pat">${patLine(s.rs)}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>${patList(s.rs)}`;}
  el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
 }
 fetch('data/pnf.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
@@ -559,7 +569,7 @@ def build_chart_page():
 .g{{stroke:var(--line);stroke-width:.6}}.x,.xs{{stroke:var(--good);stroke-width:1.6;fill:none;stroke-linecap:round}}.xs{{stroke-width:2.6}}
 .o,.os{{stroke:var(--bad);stroke-width:1.6;fill:none}}.os{{stroke-width:2.6}}
 .ax,.mo,.yr,.ml{{fill:var(--muted);font-size:9px;font-family:-apple-system,Segoe UI,Roboto,sans-serif}}.yr{{font-weight:700}}
-.pt{{font-size:8px;font-weight:700;font-family:-apple-system,Segoe UI,Roboto,sans-serif}}.pt.bull{{fill:var(--good)}}.pt.bear{{fill:var(--bad)}}.pt.info{{fill:var(--muted)}}.pat{{margin:4px 0 6px}}.m{{stroke-dasharray:3 3;stroke-width:1.2}}.m.now{{stroke:var(--fg)}}.ml.now{{fill:var(--fg)}}
+.pt{{font-size:8px;font-weight:700;font-family:-apple-system,Segoe UI,Roboto,sans-serif}}.pt.bull{{fill:var(--good)}}.pt.bear{{fill:var(--bad)}}.pt.info{{fill:var(--muted)}}.pat{{margin:4px 0 6px}}.plist{{margin:8px 0 4px}}.plist summary{{cursor:pointer;color:var(--muted)}}.plist .scroll{{margin-top:6px}}.pt-bull{{color:var(--good)}}.pt-bear{{color:var(--bad)}}.pt-info{{color:var(--muted)}}.m{{stroke-dasharray:3 3;stroke-width:1.2}}.m.now{{stroke:var(--fg)}}.ml.now{{fill:var(--fg)}}
 .m.stop{{stroke:var(--bad)}}.ml.stop{{fill:var(--bad)}}.m.tgt{{stroke:var(--good)}}.ml.tgt{{fill:var(--good)}}
 select{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px;margin:10px 0}}
 </style></head><body><main>
@@ -591,7 +601,7 @@ select{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:1
 <tr><td class="tk" style="color:var(--bad)">HP</td><td>High pole</td><td>A tall rally to a new high, then a pullback of more than half of it: the rally may be fading.</td></tr>
 <tr><td class="tk" style="color:var(--muted)">LT</td><td>Long tail down</td><td>A drop of 20 or more boxes in one column, often a washout near a low.</td></tr>
 </tbody></table></div>
-<p class="small muted" style="margin-top:6px">Green codes sit above the column (bullish), red below (bearish). The chart shows about the last 60 columns, so a pattern that started earlier may not be labeled.</p></div>
+<p class="small muted" style="margin-top:6px">Each chart lists its patterns with dates under "Patterns on this chart". A breakout pattern is dated the day the column broke through; poles and long tails are dated by the column&#39;s latest box. Green codes sit above the column (bullish), red below (bearish). The chart shows about the last 60 columns, so a pattern that started earlier may not be labeled.</p></div>
 </main><script>{CHART_JS}</script></body></html>"""
 
 
