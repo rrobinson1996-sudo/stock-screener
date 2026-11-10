@@ -95,6 +95,7 @@ CONFIG = dict(
     min_mom_pct=0.50,
     max_extension_atr=5.0,
     max_atr_pct=0.06,          # average daily range above 6% of price = too volatile
+    require_room_to_target=True,  # block BUYs that already reached their P&F target (tested 2021-23 and 2024-26)
     earn_block_days=7,
     require_risk_on=True,
 
@@ -504,6 +505,8 @@ def evaluate(ticker, df, rs, d, mom_pct_val, risk_on, ed, cfg):
         "NotExtended": (close - r["sma50"]) / atr <= cfg["max_extension_atr"],
         "NoEarnings": earn_soon is not True,
         "Volatility": atr / close <= cfg["max_atr_pct"],
+        "RoomToTarget": (not cfg.get("require_room_to_target", True)) or not px_st["objective"]
+                        or close < px_st["objective"],
     }
     if cfg["require_risk_on"]:
         gates["Regime"] = bool(risk_on)
@@ -573,6 +576,7 @@ NEEDS_TEXT = {
     "NoEarnings": "its earnings report to pass (due within 7 days)",
     "Volatility": "volatility to calm down (daily range over 6% of price)",
     "Liquidity": "more trading volume",
+    "RoomToTarget": "a fresh breakout (it has already reached its P&F target)",
 }
 
 
@@ -667,7 +671,7 @@ def run_screener(cfg=CONFIG, tickers=None, data=None, earnings=None):
         print(f"  {r['Ticker']:6s} {r['Needs']}")
 
     gate_cols = ["Liquidity", "Trend", "Momentum", "RS_PnF", "NotExtended", "NoEarnings",
-                 "Volatility", "Regime"]
+                 "Volatility", "RoomToTarget", "Regime"]
     fails = {g: res["Failed"].str.contains(g).sum() for g in gate_cols}
     print(f"\nEvaluated {len(res)} | skipped {len(skipped)} | gate failures: "
           + ", ".join(f"{k} {v}" for k, v in fails.items() if v))
@@ -690,6 +694,7 @@ def run_screener(cfg=CONFIG, tickers=None, data=None, earnings=None):
 # =====================================================================  CHECK ANY STOCK
 GATE_TEXT = {
     "Liquidity": "too thinly traded (under $25M a day)",
+    "RoomToTarget": "it has already reached its P&F target (no room left)",
     "Trend": "not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high)",
     "Momentum": "12-month momentum is in the bottom half vs the NASDAQ-100",
     "RS_PnF": "not outperforming QQQ (no relative-strength P&F buy signal)",

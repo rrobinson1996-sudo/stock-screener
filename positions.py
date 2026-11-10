@@ -34,7 +34,7 @@ import pandas as pd
 
 TAB = "Positions"
 HOLD_DAYS = 60
-STRONG_OK_FAILS = {"Regime", "NotExtended", "NoEarnings"}   # entry-timing gates; irrelevant once held
+STRONG_OK_FAILS = {"Regime", "NotExtended", "NoEarnings", "RoomToTarget"}   # entry-only gates; irrelevant once held
 
 
 # ------------------------------------------------------------------ sheet I/O

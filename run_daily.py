@@ -247,7 +247,7 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
 
     buy_cols = [("Ticker", "Ticker", "ticker"), ("News", "Red flags", "badge"), ("Score", "Score", "int"),
                 ("Close", "Close", "money"), ("Stop", "Stop", "money"), ("RiskPct", "Risk", "pct"),
-                ("Objective", "Target", "money"), ("Upside", "Upside", "pct"),
+                ("Objective", "Target", "money"),
                 ("NextEarn", "Next earnings", None), ("Wyckoff", "Wyckoff", None)]
     watch_cols = [("Ticker", "Ticker", "ticker"), ("Score", "Score", "int"), ("Needs", "What it needs to become a BUY", "need"),
                   ("News", "Red flags", "badge"), ("Close", "Close", "money"), ("RS", "RS P&F", None),
@@ -332,7 +332,7 @@ signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ 
 <li><b>Stop:</b> the Stop column (close &minus; {stop}&times;ATR). Set it when you enter and don't move it down.</li>
 <li><b>Size:</b> small. Risk about 1% of the account per trade: shares = (account &times; 1%) &divide; (entry &minus; stop). Fractional shares are fine.</li>
 <li><b>Hold:</b> about 60 trading days (~3 months), then reassess. Exit early only if the stop is hit.</li>
-<li><b>Target / Upside:</b> a rough measured-move target, not a forecast. Use it to check reward vs risk: Upside &divide; Risk of 1.5&ndash;2 or better is worth taking. "met" = target already reached.</li>
+<li><b>Target:</b> a rough measured-move target, not a forecast. The screener never lists a BUY that has already reached its target (tested: those lagged). Don&#39;t rank BUYs by upside; bigger targets didn&#39;t mean better results.</li>
 <li><b>Earnings:</b> the screener won't flag a stock within 7 days of its report. Note the Next earnings date; it will usually fall inside your hold.</li>
 </ul></div>
 
