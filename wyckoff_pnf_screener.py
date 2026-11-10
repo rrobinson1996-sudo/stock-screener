@@ -1170,6 +1170,26 @@ def run_backtest(cfg=CONFIG, tickers=None, data=None, earnings=None):
         print(f"\n {label}: does more upside mean better results? (BUY signals, {H}-day hold)")
         print(pd.DataFrame(rows_u).reindex(columns=cols_u).to_string(index=False))
 
+    # ---- candidate gate: require room left to the P&F target. Checked in two separate periods.
+    room = up > 0
+    met = up <= 0
+    none_ = up.isna()
+    periods = (("2021-23 (incl. 2022 bear)", bt["Date"] < "2024-01-01"),
+               ("2024-26", bt["Date"] >= "2024-01-01"),
+               ("All years", pd.Series(True, index=bt.index)))
+    rows_g = []
+    for pname, pmask in periods:
+        for gname, gmask in (("new entries", bt["NewEntry"]), ("all BUY rows", bt["Tier"] == "BUY")):
+            base = pmask & gmask
+            for sub, smask in (("all", base), ("target MET", base & met), ("NO target", base & none_),
+                               ("ROOM left (gate passes)", base & room)):
+                r = _summary(bt, smask, f"{pname} | {gname} | {sub}", cfg["bt_horizons"])
+                rows_g.append(r)
+    cols_g = ["Group", "N", f"Excess{H}d_avg%", f"Excess{H}d_med%", f"Beat_QQQ_{H}d%",
+              "StopTrade_avg%", "StopTrade_win%", "Worst_trade%"]
+    print(f"\n Room-to-target gate check: do 'target met' and 'no target' BUYs lag in BOTH periods? ({H}-day hold)")
+    print(pd.DataFrame(rows_g).reindex(columns=cols_g).to_string(index=False))
+
     print("\nCAVEATS: current index members only (survivorship bias - compare against the "
           "baseline row, not zero);\n         overlapping weekly windows overstate sample size; "
           "no commissions/slippage.")
