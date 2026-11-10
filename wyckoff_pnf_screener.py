@@ -119,6 +119,12 @@ CONFIG = dict(
     bt_step=5,                 # evaluate every 5 trading days (weekly)
     bt_horizons=(20, 60),
     bt_stop_mults=(2.5, 3.5, 5.0, None),   # stop widths to compare (None = no stop)
+    # stop styles to compare on BUY signals (all start at stop_atr_mult x ATR):
+    #   fixed      - never moves (what the strategy uses)
+    #   atr_trail  - raised each day to close - stop_atr_mult x ATR, never lowered
+    #   breakeven  - moved to the entry price once the gain equals the initial risk
+    #   pnf_trail  - raised to one box below each completed O column on the price P&F chart
+    bt_stop_styles=("fixed", "atr_trail", "breakeven", "pnf_trail"),
 )
 
 FALLBACK_TICKERS = [
@@ -930,6 +936,47 @@ def _trade(df, pos, stop, H):
     return seg["Close"].iloc[-1] / entry - 1
 
 
+def _pnf_trail_events(df, pos, H, box, rev, W):
+    """(bar index when known, stop price) for each completed O column. An O column's low
+    is final only once the next X column has started, so there is no look-ahead."""
+    start = max(0, pos - W + 1)
+    s = df["Close"].iloc[start: pos + H + 1]
+    cols, _, _ = build_pnf(s, box, rev)
+    ev = []
+    for k in range(len(cols) - 1):
+        if cols[k]["type"] == "O":
+            ev.append((start + cols[k + 1]["i0"], (1 + box) ** (cols[k]["bottom"] - 1)))
+    return ev
+
+
+def _trade_style(df, pos, H, stop0, style, atr_mult=5.0, events=None):
+    """Simulate one trade: enter next open, exit when the low touches the stop (at the open
+    if it gapped below), else at the close after H bars. Returns (return, bars held)."""
+    if pos + H >= len(df):
+        return np.nan, np.nan
+    o, lo, c = (df[k].to_numpy() for k in ("Open", "Low", "Close"))
+    atr = df["atr20"].to_numpy()
+    entry = o[pos + 1]
+    if entry <= stop0:
+        return 0.0, 1
+    stop, risk = stop0, entry - stop0
+    ev = sorted(events or [])
+    for k in range(1, H + 1):
+        j = pos + k
+        if lo[j] <= stop:
+            px = stop if k == 1 else min(o[j], stop)
+            return px / entry - 1, k
+        # update the stop with information known at today's close (used from tomorrow)
+        if style == "atr_trail" and not np.isnan(atr[j]):
+            stop = max(stop, c[j] - atr_mult * atr[j])
+        elif style == "breakeven" and c[j] >= entry + risk:
+            stop = max(stop, entry)
+        elif style == "pnf_trail":
+            while ev and ev[0][0] <= j:
+                stop = max(stop, ev.pop(0)[1])
+    return c[pos + H] / entry - 1, H
+
+
 def _summary(df, mask, name, horizons):
     H = max(horizons)
     g = df[mask]
@@ -982,6 +1029,19 @@ def run_backtest(cfg=CONFIG, tickers=None, data=None, earnings=None):
             for m in cfg["bt_stop_mults"]:
                 stop_m = row["Close"] - m * row["ATR"] if m else -np.inf
                 row[f"stop_{m or 'none'}"] = _trade(df, pos, stop_m, H)
+            if row["Tier"] == "BUY":
+                stop0 = row["Close"] - cfg["stop_atr_mult"] * row["ATR"]
+                ev = None
+                if "pnf_trail" in cfg["bt_stop_styles"]:
+                    try:
+                        rpos = rs.index.get_loc(d)
+                        pxb, _ = box_sizes(df, rs, pos, rpos, cfg)
+                        ev = _pnf_trail_events(df, pos, H, pxb, cfg["px_reversal"], cfg["pnf_window"])
+                    except Exception:
+                        ev = []
+                for st in cfg["bt_stop_styles"]:
+                    r_, k_ = _trade_style(df, pos, H, stop0, st, cfg["stop_atr_mult"], ev)
+                    row[f"style_{st}"], row[f"days_{st}"] = r_, k_
             row["RiskOn"] = risk_on
             rows.append(row)
         if (i + 1) % 25 == 0:
@@ -1031,6 +1091,30 @@ def run_backtest(cfg=CONFIG, tickers=None, data=None, earnings=None):
         stop_rows.append(r)
     print(f"\n Stop-width comparison ({H}-day hold, enter next open, exit at stop or day {H}):")
     print(pd.DataFrame(stop_rows).to_string(index=False))
+
+    styles = [st for st in cfg["bt_stop_styles"] if f"style_{st}" in bt.columns]
+    if styles:
+        style_rows = []
+        for name, m in (("BUY candidates", bt["Tier"] == "BUY"), ("BUY: new entries only", bt["NewEntry"])):
+            g = bt[m]
+            for st in styles:
+                c = g[f"style_{st}"].dropna()
+                if c.empty:
+                    continue
+                style_rows.append(dict(
+                    Group=name, Style=st, N=len(c),
+                    Avg_return_pct=round(c.mean() * 100, 2),
+                    Median_pct=round(c.median() * 100, 2),
+                    Win_pct=round((c > 0).mean() * 100, 1),
+                    Worst_pct=round(c.min() * 100, 1),
+                    Best_pct=round(c.max() * 100, 1),
+                    Avg_days_held=round(g[f"days_{st}"].dropna().mean(), 1),
+                    Stopped_out_pct=round((g[f"days_{st}"].dropna() < H).mean() * 100, 1)))
+        print(f"\n Stop-STYLE comparison (BUY signals, {cfg['stop_atr_mult']:g}xATR starting stop, {H}-day max hold):")
+        print("   fixed = never moves | atr_trail = raised to close - "
+              f"{cfg['stop_atr_mult']:g}xATR daily | breakeven = to entry once up 1x risk | "
+              "pnf_trail = under each completed P&F O column")
+        print(pd.DataFrame(style_rows).to_string(index=False))
     print("\nCAVEATS: current index members only (survivorship bias - compare against the "
           "baseline row, not zero);\n         overlapping weekly windows overstate sample size; "
           "no commissions/slippage.")
