@@ -10,6 +10,12 @@ phone-friendly report to GitHub Pages, with an optional push notification via
 - `docs/`: the published report (`index.html`), dated copies (`reports/`) and
   the BUY signal log (`data/signals.csv`)
 
+## Your watchlist
+
+Edit `watchlist.txt` (one ticker per line, any US stock) and commit. Every
+daily report then includes a "Your watchlist" section with each ticker's
+gates, score, red-flag check and a plain-English verdict.
+
 ## Settings (repo → Settings)
 
 | Where | Name | Value |

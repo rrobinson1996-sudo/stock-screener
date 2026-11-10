@@ -1,0 +1,4 @@
+# Your watchlist - checked every day by the screener.
+# One ticker per line (or comma-separated). Anything after # is ignored.
+# Works for any US stock, not just the NASDAQ-100.
+MANH

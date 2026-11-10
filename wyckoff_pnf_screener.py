@@ -11,7 +11,9 @@ HOW TO USE IN COLAB
   3. To test the rules on history, run in a new cell:
          bt = run_backtest()
      (takes a few minutes: ~100 tickers x ~150 weekly dates)
-  4. Red-flag check on any tickers (runs automatically on BUY + top watch names):
+  4. Check any stocks (in the NASDAQ-100 or not) against the full system:
+         check_stocks("MANH, FAST, COST")
+     Red-flag check only (runs automatically on BUY + top watch names):
          red_flag_check(["AAPL", "FAST"])
   5. To test ATR-scaled boxes against fixed 1%/2% boxes on the same data:
          runs = compare_box_modes()
@@ -604,6 +606,101 @@ def run_screener(cfg=CONFIG, tickers=None, data=None, earnings=None):
     print(f"Full results saved to {fname}")
     res.attrs.update(asof=d.date().isoformat(), risk_on=risk_on, benchmark=cfg["benchmark"],
                      universe=len(tickers), evaluated=len(res), gate_failures=fails)
+    return res
+
+
+# =====================================================================  CHECK ANY STOCK
+GATE_TEXT = {
+    "Liquidity": "too thinly traded (under $25M a day)",
+    "Trend": "not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high)",
+    "Momentum": "12-month momentum is in the bottom half vs the NASDAQ-100",
+    "RS_PnF": "not outperforming QQQ (no relative-strength P&F buy signal)",
+    "NotExtended": "too far above its 50-day average - wait for a pullback",
+    "NoEarnings": "earnings report within 7 days",
+    "Volatility": "too volatile (average daily range over 6% of price)",
+    "Regime": "market regime is CAUTION (QQQ below trend)",
+}
+
+
+def plain_verdict(row, cfg=CONFIG):
+    if row.get("Tier") == "n/a":
+        return row.get("Failed") or "No data."
+    failed = [f for f in str(row.get("Failed") or "").split(",") if f]
+    score = row.get("Score") or 0
+    if not failed and score >= cfg["buy_score"]:
+        return "Passes everything: BUY candidate. Take it if the red-flag check is CLEAN."
+    if failed == ["Regime"] and score >= cfg["buy_score"]:
+        return "Setup qualifies, but the market regime is CAUTION - wait for it to turn on."
+    parts = [GATE_TEXT.get(f, f) for f in failed if f != "Regime"]
+    if score < cfg["buy_score"]:
+        parts.append(f"score {score:.0f} is below {cfg['buy_score']}")
+    if "Regime" in failed:
+        parts.append("and the market regime is CAUTION")
+    return "Not a buy: " + "; ".join(parts) + "."
+
+
+def check_stocks(symbols, cfg=CONFIG, universe=None, data=None, news=True):
+    """Run any tickers (in the NASDAQ-100 or not) through the full system:
+    gates, score, red-flag check, with a plain-English verdict.
+    Momentum is ranked against the NASDAQ-100 so scores are comparable."""
+    if isinstance(symbols, str):
+        symbols = symbols.replace(";", ",").replace(" ", ",").split(",")
+    symbols = list(dict.fromkeys(s.strip().upper().replace(".", "-") for s in symbols if s.strip()))
+    if not symbols:
+        print("No tickers given.")
+        return None
+    universe = universe or load_nasdaq100()
+    allsyms = list(dict.fromkeys(list(universe) + symbols))
+    if data is None:
+        data = download_data(allsyms, cfg, cfg["history"])
+    else:
+        missing = [t for t in symbols if t not in data]
+        if missing:
+            data = {**data, **download_data(missing, cfg, cfg["history"])}
+    if cfg["benchmark"] not in data:
+        print("Benchmark download failed.")
+        return None
+    earnings = fetch_earnings(symbols) if cfg["use_earnings"] else {}
+    bench, prepared, mom_pct = prepare(allsyms, data, cfg)
+    d = bench.index[-1]
+    risk_on = bool(bench["risk_on"].iloc[-1])
+
+    rows = []
+    for t in symbols:
+        row = None
+        if t in prepared:
+            df, rs = prepared[t]
+            try:
+                row = evaluate(t, df, rs, d, mom_pct.at[d, t], risk_on, earnings.get(t), cfg)
+            except Exception:
+                row = None
+        if row is None:
+            why = ("no price data (check the symbol)" if t not in data
+                   else "not enough history (needs about a year of trading)")
+            row = dict(Ticker=t, Tier="n/a", Failed=why)
+        if not row.get("Tier"):
+            row["Tier"] = "NO"
+        row["Verdict"] = plain_verdict(row, cfg)
+        rows.append(row)
+    res = pd.DataFrame(rows)
+
+    print("\n" + "=" * 90)
+    print(f" STOCK CHECK  |  as of {d.date()}  |  market regime: {'RISK-ON' if risk_on else 'CAUTION'}")
+    print("=" * 90)
+    for _, r in res.iterrows():
+        if r["Tier"] == "n/a":
+            print(f"\n{r['Ticker']:6s}  {r['Verdict']}")
+            continue
+        print(f"\n{r['Ticker']:6s}  score {r['Score']:.0f}  |  {r['Tier']}  |  close ${r['Close']:,.2f}  "
+              f"|  stop ${r['Stop']:,.2f} ({r['RiskPct']:.1f}%)  |  next earnings {r.get('NextEarn') or 'n/a'}")
+        print(f"        RS {r['RS']}  price {r['Px']}  momentum rank {r['MomPct']:.0f}  "
+              f"off high {r['OffHigh']}%  Wyckoff {r['Wyckoff'] or '-'}")
+        print(f"        -> {r['Verdict']}")
+    ok = [t for t in res.loc[res["Tier"] != "n/a", "Ticker"]]
+    if news and ok and cfg.get("news_check", True):
+        flags = red_flag_check(ok, cfg["news_days"])
+        res = res.merge(flags, on="Ticker", how="left")
+    res.attrs.update(asof=d.date().isoformat(), risk_on=risk_on)
     return res
 
 

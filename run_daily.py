@@ -18,6 +18,7 @@ Environment variables (set in the GitHub repo settings):
 
 import html
 import os
+import re
 import sys
 import time
 import traceback
@@ -84,7 +85,7 @@ def fmt(v, kind=None):
     return str(v)
 
 
-BADGE = {"BUY": "good", "CLEAN": "good", "RISK-ON": "good", "REVIEW": "warn",
+BADGE = {"BUY": "good", "CLEAN": "good", "RISK-ON": "good", "REVIEW": "warn", "NO": "muted",
          "WATCH": "warn", "VETO?": "bad", "CAUTION": "bad", "NO DATA": "muted"}
 
 
@@ -138,6 +139,38 @@ def red_flag_cards(res):
     return "".join(out)
 
 
+def headline_list(r):
+    items = "".join(
+        f'<li><span class="muted">{esc(h["date"])} · {esc(h["source"])}</span><br>'
+        + (f'<a href="{esc(h["url"])}">{esc(h["title"])}</a>' if h["url"] else esc(h["title"]))
+        + f' <span class="hits">[{esc(h["hits"])}]</span></li>'
+        for h in (r.get("Headlines") if isinstance(r.get("Headlines"), list) else []))
+    return f"<ul>{items}</ul>" if items else ""
+
+
+def watchlist_cards(mine):
+    if mine is None:
+        return ('<p class="empty">No watchlist yet. Add tickers to <b>watchlist.txt</b> in the repo '
+                '(one per line) and they will be checked every day.</p>')
+    out = []
+    for _, r in mine.iterrows():
+        if r.get("Tier") == "n/a":
+            out.append(f'<div class="card"><div class="row"><span class="tk big">{esc(r["Ticker"])}</span>'
+                       f'{badge("NO DATA")}</div><div class="small">{esc(r["Verdict"])}</div></div>')
+            continue
+        flags = r.get("NewsFlags") if isinstance(r.get("NewsFlags"), str) else ""
+        out.append(
+            f'<div class="card"><div class="row"><span class="tk big">{esc(r["Ticker"])}</span>'
+            f'<span>{badge(r["Tier"])} {badge(r.get("News"))}</span></div>'
+            f'<div class="small muted">Score {fmt(r.get("Score"), "int")} · close {fmt(r.get("Close"), "money")} · '
+            f'stop {fmt(r.get("Stop"), "money")} ({fmt(r.get("RiskPct"), "pct")}) · '
+            f'next earnings {esc(r.get("NextEarn") or "n/a")}</div>'
+            f'<div class="small" style="margin-top:6px">{esc(r["Verdict"])}</div>'
+            + (f'<div class="small muted" style="margin-top:4px">Red flags: {esc(flags)}</div>' if flags else "")
+            + headline_list(r) + "</div>")
+    return "".join(out)
+
+
 CSS = """
 :root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1b;--muted:#6b6b66;--line:#e4e3de;
 --good:#1f7a4d;--goodbg:#e3f3ea;--warn:#8a5a00;--warnbg:#fbf0d9;--bad:#a8322b;--badbg:#f9e3e1;--mutedbg:#ecebe7}
@@ -168,7 +201,7 @@ footer{margin:30px 0 10px;font-size:12px;color:var(--muted)}
 """
 
 
-def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html"):
+def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html", mine=None):
     a = stocks.attrs if stocks is not None else {}
     fa = funds.attrs if funds is not None else {}
     asof = a.get("asof", "?")
@@ -219,6 +252,10 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html")
 
 <h2>Buy candidates</h2>
 {buy_html}
+
+<h2>Your watchlist</h2>
+<p class="muted small">Tickers from watchlist.txt, run through the same gates, score and red-flag check.</p>
+{watchlist_cards(mine)}
 
 <h2>Red-flag check</h2>
 <p class="muted small">Looks for reasons <b>not</b> to buy. VETO? = estimates being cut or deal-driven news.
@@ -319,9 +356,17 @@ def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None,
         print(f"Notification failed: {e}")
 
 
-def summary(stocks, funds):
+def summary(stocks, funds, mine=None):
     regime = "RISK-ON" if stocks.attrs.get("risk_on") else "CAUTION"
     buys = stocks[stocks["Tier"] == "BUY"]
+    if mine is not None:
+        extra = mine[(mine["Tier"] == "BUY") & ~mine["Ticker"].isin(buys["Ticker"])]
+        buys = pd.concat([buys, extra])
+    mine_line = ""
+    if mine is not None:
+        mine_line = "\nYour list: " + ", ".join(
+            f"{r.Ticker} {r.Tier}" + (f" {r.Score:.0f}" if pd.notna(r.get('Score')) else "")
+            for _, r in mine.iterrows())
     lead = ", ".join(funds[funds["Tier"] == "BUY"]["Ticker"].head(4)) if funds is not None else ""
     if not buys.empty:
         lines = [f"{r.Ticker}: score {r.Score:.0f}, red flags {r.get('News') or 'n/a'}, "
@@ -333,7 +378,7 @@ def summary(stocks, funds):
         do = ("Do: buy CLEAN names at the next open with the stop shown"
               + (f" ({', '.join(clean[:4])})" if clean else "")
               + ". Read REVIEW headlines first. Skip VETO?. Score 60-75 is as good as 75+.")
-        body = do + "\n" + "\n".join(lines) + (f"\nFunds leading: {lead}" if lead else "")
+        body = do + "\n" + "\n".join(lines) + mine_line + (f"\nFunds leading: {lead}" if lead else "")
         return title, body, 4, True
     watch = stocks[stocks["Tier"] == "WATCH"].head(3)
     w = ", ".join(f"{r.Ticker} {r.Score:.0f}" for _, r in watch.iterrows()) or "none"
@@ -345,7 +390,7 @@ def summary(stocks, funds):
     ready = [r.Ticker for _, r in watch.iterrows() if r.get("News") == "CLEAN"]
     if ready:
         do += f" First in line if it turns on: {', '.join(ready)}."
-    body = do + f"\nTop watch: {w}" + (f"\nFunds leading: {lead}" if lead else "")
+    body = do + f"\nTop watch: {w}" + mine_line + (f"\nFunds leading: {lead}" if lead else "")
     return title, body, 2, False
 
 
@@ -363,6 +408,16 @@ def log_signals(stocks):
         old = pd.read_csv(path)
         new = pd.concat([old, new]).drop_duplicates(subset=["Date", "Ticker"], keep="last")
     new.to_csv(path, index=False)
+
+
+def read_watchlist(path="watchlist.txt"):
+    p = Path(path)
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        out += [t for t in re.split(r"[,\s]+", line.split("#")[0]) if t]
+    return list(dict.fromkeys(t.upper() for t in out))
 
 
 def main():
@@ -388,6 +443,14 @@ def main():
     if stocks is None:
         raise RuntimeError("Stock screener returned no results.")
 
+    mine = None
+    wl = read_watchlist()
+    if wl:
+        try:
+            mine = S.check_stocks(wl, cfg, universe=tickers, data=data)
+        except Exception as e:
+            notes.append(f"Watchlist check failed: {type(e).__name__}: {e}")
+
     fdata, fcov = download_with_retry(ETFS, FUND_CFG, FUND_CFG["history"])
     funds = S.run_screener(FUND_CFG, tickers=ETFS, data=fdata, earnings={}) if FUND_CFG["benchmark"] in fdata else None
     if funds is None:
@@ -399,7 +462,7 @@ def main():
 
     past = sorted(REPORTS.glob("*.html"), reverse=True)
     names = sorted({p.stem for p in past} | {asof}, reverse=True)[:15]
-    page = build_html(stocks, funds, notes, [(n, f"reports/{n}.html") for n in names])
+    page = build_html(stocks, funds, notes, [(n, f"reports/{n}.html") for n in names], mine=mine)
     (DOCS / "index.html").write_text(page, encoding="utf-8")
     (DOCS / "cheatsheet.html").write_text(build_cheatsheet(), encoding="utf-8")
     # dated copies link back up one level
@@ -408,7 +471,7 @@ def main():
     (REPORTS / f"{asof}.html").write_text(dated, encoding="utf-8")
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 
-    title, body, prio, has_buy = summary(stocks, funds)
+    title, body, prio, has_buy = summary(stocks, funds, mine)
     if notes:
         body += "\nNote: " + " ".join(notes)
     if has_buy or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
