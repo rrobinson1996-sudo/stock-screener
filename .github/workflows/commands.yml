@@ -47,6 +47,7 @@ jobs:
         if: steps.fetch.outputs.has == 'true'
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_PUBLIC_TOPIC: ${{ secrets.NTFY_PUBLIC_TOPIC }}
           REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: python commands.py apply
 

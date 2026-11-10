@@ -648,10 +648,12 @@ def build_cheatsheet():
 
 
 # ------------------------------------------------------------------ notify
-def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None, cheat=None):
-    topic = os.environ.get("NTFY_TOPIC", "").strip()
+def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None, cheat=None, env="NTFY_TOPIC"):
+    """Send to the topic named by the env variable: NTFY_TOPIC (private, includes positions)
+    or NTFY_PUBLIC_TOPIC (shared, screener summary only)."""
+    topic = os.environ.get(env, "").strip()
     if not topic:
-        print("NTFY_TOPIC not set - skipping notification.")
+        print(f"{env} not set - skipping that notification.")
         return
     headers = {"Title": title.encode("ascii", "ignore").decode(), "Priority": str(priority), "Tags": tags}
     if click:
@@ -808,6 +810,7 @@ def main():
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 
     title, body, prio, has_buy = summary(stocks, funds, mine)
+    pub_title, pub_body, pub_prio = title, body, prio     # public copy: no positions, ever
 
     # Positions you hold (private Google Sheet). Results go to the sheet and the
     # notification only, never to the public report.
@@ -826,9 +829,14 @@ def main():
 
     if notes:
         body += "\nNote: " + " ".join(notes)
+    url = os.environ.get("REPORT_URL")
+    cheat = (url.rstrip("/") + "/cheatsheet.html") if url else None
     if has_buy or pos_action or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
-        url = os.environ.get("REPORT_URL")
-        notify(title, body, prio, click=url, cheat=(url.rstrip("/") + "/cheatsheet.html") if url else None)
+        notify(title, body, prio, click=url, cheat=cheat)
+    if notes:
+        pub_body += "\nNote: " + " ".join(notes)
+    if has_buy or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
+        notify(pub_title, pub_body, pub_prio, click=url, cheat=cheat, env="NTFY_PUBLIC_TOPIC")
 
 
 if __name__ == "__main__":

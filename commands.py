@@ -183,7 +183,11 @@ def apply():
     title = "Check: " + ", ".join(to_check[:4]) if to_check else "Watchlist update"
     body = "\n".join(replies) or "Nothing to do."
     print(title, "\n" + body)
+    # Replies go to both topics, so whoever sent the command sees the result.
+    # They never contain positions.
     notify(title, body, 3, tags="mag", click=report)
+    if os.environ.get("NTFY_PUBLIC_TOPIC", "").strip() != os.environ.get("NTFY_TOPIC", "").strip():
+        notify(title, body, 3, tags="mag", click=report, env="NTFY_PUBLIC_TOPIC")
 
 
 if __name__ == "__main__":

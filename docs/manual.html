@@ -289,7 +289,8 @@ The <b>"What it needs to become a BUY"</b> column spells it out in plain English
 <li>Limits: 25 stocks on the watchlist, 10 checks per run. Resending doesn't speed things up.</li>
 <li>Typos get added as-is ("no price data" in the report): send remove to fix.</li>
 <li>Don't put funds on the watchlist (they're judged vs QQQ there). Use the Funds section.</li>
-<li>Keep both topic names private. Every watchlist change is in GitHub history, so it can be undone.</li>
+<li><b>Three topics:</b> your <b>private report topic</b> (daily summary plus your positions), a <b>public topic</b> (the same summary without positions, shared with family) and the <b>command topic</b> (shared, so others can add stocks). Command replies go to both the private and public topics, so whoever sent the command sees the answer. Subscribe to the private topic only; subscribing to the public one too would give you duplicates.</li>
+<li><b>Never share the private report topic:</b> it carries your positions and sell alerts. Anyone with the command topic can add or remove watchlist stocks (nothing else), and every change is in watchlist.txt&#39;s GitHub history, so it can be undone.</li>
 </ul></div>
 
 <h2 id="positions">11. Your Positions</h2>
@@ -406,6 +407,7 @@ out = check_stocks(TICKERS)</pre>
 <h2 id="setup">17. Setup Reference</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Where (repo Settings)</th><th>Name</th><th>Value</th></tr></thead><tbody>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_TOPIC</td><td>Report topic name</td></tr>
+<tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_PUBLIC_TOPIC</td><td>Shared topic: daily screener summary and command replies, never positions</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_CMD_TOPIC</td><td>Command topic name</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">GOOGLE_SA_JSON</td><td>The full contents of the service-account key file (for the positions sheet)</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">POSITIONS_SHEET_ID</td><td>The long ID in the Screener Positions sheet&#39;s web address</td></tr>
