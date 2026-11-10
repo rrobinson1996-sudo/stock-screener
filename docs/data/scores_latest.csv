@@ -3,14 +3,14 @@ FAST,89.4,WATCH,NASDAQ-100,Ready except for the market: needs the market regime 
 AAPL,88.5,WATCH,NASDAQ-100,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,VETO?,348.51,Regime,306.28,434.58,2026-11-10
 MANH,66.4,WATCH,Watchlist,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,CLEAN,257.54,Regime,213.01,281.98,2026-11-10
 TXN,64.5,WATCH,NASDAQ-100,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,CLEAN,300.52,Regime,236.22,312.25,2026-11-10
-ABNB,61.2,WATCH,NASDAQ-100,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,VETO?,186.9,Regime,155.0,162.62,2026-11-10
 AMGN,60.6,WATCH,NASDAQ-100,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,VETO?,465.23,Regime,401.63,636.91,2026-11-10
-KDP,60.0,WATCH,NASDAQ-100,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,,37.59,Regime,32.48,40.02,2026-11-10
+KDP,60.0,WATCH,NASDAQ-100,Ready except for the market: needs the market regime to turn RISK-ON (QQQ back above trend).,VETO?,37.59,Regime,32.48,40.02,2026-11-10
 MRNA,90.0,NO,NASDAQ-100,Not a buy: too volatile (average daily range over 6% of price); and the market regime is CAUTION.,,250.83,"Volatility,Regime",132.81,767.13,2026-11-10
 SNPS,78.8,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); and the market regime is CAUTION.",,459.95,"Trend,Regime",363.09,633.56,2026-11-10
 META,71.4,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); and the market regime is CAUTION.",,641.39,"Trend,Regime",518.81,874.6,2026-11-10
 LIN,65.2,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); and the market regime is CAUTION.",,521.78,"Trend,Regime",476.15,668.97,2026-11-10
 DXCM,63.0,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); and the market regime is CAUTION.",,79.92,"Trend,Regime",63.73,102.31,2026-11-10
+ABNB,61.2,NO,NASDAQ-100,Not a buy: it has already reached its P&F target (no room left); and the market regime is CAUTION.,,186.9,"RoomToTarget,Regime",155.0,162.62,2026-11-10
 GILD,59.7,NO,NASDAQ-100,Not a buy: score 60 is below 60; and the market regime is CAUTION.,,170.87,Regime,144.74,204.5,2026-11-10
 MAR,59.1,NO,NASDAQ-100,Not a buy: too far above its 50-day average - wait for a pullback; score 59 is below 60; and the market regime is CAUTION.,,428.26,"NotExtended,Regime",373.95,479.7,2026-11-10
 GEHC,58.5,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); 12-month momentum is in the bottom half vs the NASDAQ-100; too far above its 50-day average - wait for a pullback; score 58 is below 60; and the market regime is CAUTION.",,83.65,"Trend,Momentum,NotExtended,Regime",70.58,90.89,2026-11-10
@@ -18,7 +18,7 @@ MNST,57.6,NO,NASDAQ-100,Not a buy: score 58 is below 60; and the market regime i
 ROST,57.4,NO,NASDAQ-100,Not a buy: score 57 is below 60; and the market regime is CAUTION.,,238.95,Regime,203.92,454.26,2026-11-10
 VRTX,57.0,NO,NASDAQ-100,Not a buy: score 57 is below 60; and the market regime is CAUTION.,,547.89,Regime,459.09,660.21,2026-11-10
 CSX,56.5,NO,NASDAQ-100,Not a buy: score 56 is below 60; and the market regime is CAUTION.,,51.08,Regime,44.59,55.97,2026-11-10
-CRWD,55.8,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); too volatile (average daily range over 6% of price); score 56 is below 60; and the market regime is CAUTION.",,225.76,"Trend,Volatility,Regime",153.25,225.66,2026-11-10
+CRWD,55.8,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); too volatile (average daily range over 6% of price); it has already reached its P&F target (no room left); score 56 is below 60; and the market regime is CAUTION.",,225.76,"Trend,Volatility,RoomToTarget,Regime",153.25,225.66,2026-11-10
 CCEP,55.8,NO,NASDAQ-100,Not a buy: score 56 is below 60; and the market regime is CAUTION.,,117.55,Regime,103.02,143.05,2026-11-10
 PANW,55.5,NO,NASDAQ-100,"Not a buy: not in an uptrend (needs close > 50-day > rising 200-day, within 25% of its high); too volatile (average daily range over 6% of price); score 56 is below 60; and the market regime is CAUTION.",,326.36,"Trend,Volatility,Regime",223.82,607.64,2026-11-10
 ADI,54.8,NO,NASDAQ-100,Not a buy: score 55 is below 60; and the market regime is CAUTION.,,393.3,Regime,296.75,761.63,2026-11-10
