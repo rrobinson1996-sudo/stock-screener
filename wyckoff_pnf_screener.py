@@ -1122,8 +1122,8 @@ def run_backtest(cfg=CONFIG, tickers=None, data=None, earnings=None):
     # ---- simple P&F rules vs the full system (each counted at entry only)
     def entries(mask):
         """First week a stock enters the group (not every week it stays in it)."""
-        m = mask.fillna(False).astype(bool)
-        prev = m.groupby(bt["Ticker"]).shift(1).fillna(False).astype(bool)
+        m = mask.astype("boolean").fillna(False).astype(bool)
+        prev = m.groupby(bt["Ticker"]).shift(1, fill_value=False).astype(bool)
         return m & ~prev
     px_buy = bt["Px"].astype(str).str.endswith("/BUY")
     rs_buy = bt["RS"].astype(str).str.endswith("/BUY")
