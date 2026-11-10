@@ -1,13 +1,18 @@
 """
 Daily check of the positions you hold, from your private Google Sheet.
 
-The sheet ("Positions" tab) has your inputs in columns A-G and the system's
-results in H-M:
+Every tab laid out like "Positions" (A1 = Ticker) is an account: your real one,
+a "Paper" one for pretend money, or any others you add. Columns:
 
-  A Ticker | B Account | C Entry date | D Entry price | E Shares | F Stop | G Notes
-  H Last close | I Days held | J Health | K Action | L Why | M Updated
+  A Ticker | B Account | C Entry date | D Entry price | E Shares | F Stop | G Notes      (you)
+  H Last close | I Days held | J Health | K Action | L Why | M Updated                  (system)
+  N Gain % | O Value | P $ at risk to stop                                            (formulas)
+  Q Exit date | R Exit price                                                          (you, when you sell)
+  S QQQ same period                                                                   (system)
+  T Trade return | U vs QQQ                                                           (formulas)
 
-Every position gets exactly one recommended action, chosen in this order:
+A row with an exit is a closed trade: it is kept for the record, marked CLOSED,
+and compared with QQQ over the same days. Open rows get exactly one action:
   1. Stop hit            -> SELL
   2. Health broken       -> SELL
   3. Earnings in 7 days  -> HOLD THROUGH (gain covers stop distance) or SELL BEFORE EARNINGS
@@ -17,6 +22,11 @@ Every position gets exactly one recommended action, chosen in this order:
   7. Fresh BUY again     -> ADD (OPTIONAL), within the 1% risk budget
   8. Otherwise           -> No action, with a status line
 The stop is never moved: the backtest showed a fixed stop beat every trailing style.
+Tabs with "paper" or "test" in the name never raise the SELL alert in the title.
+
+The Cash tab is a register of deposits, withdrawals and interest per account;
+the system fills in QQQ's close that day and what the same money would be worth
+in QQQ today, so the Compare tab can measure each account against the index.
 
 Secrets (GitHub repo settings): GOOGLE_SA_JSON (service-account key JSON) and
 POSITIONS_SHEET_ID (the long ID in the sheet's URL). If either is missing the
@@ -32,19 +42,26 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-TAB = "Positions"
+SKIP_TABS = {"how to use", "compare", "cash"}
+CASH_TAB = "Cash"
 HOLD_DAYS = 60
 STRONG_OK_FAILS = {"Regime", "NotExtended", "NoEarnings", "RoomToTarget"}   # entry-only gates; irrelevant once held
+STAMP_TZ = "America/Indiana/Indianapolis"
 
 
 # ------------------------------------------------------------------ sheet I/O
-def open_sheet():
+def open_book():
     key, sid = os.environ.get("GOOGLE_SA_JSON", "").strip(), os.environ.get("POSITIONS_SHEET_ID", "").strip()
     if not key or not sid:
         return None
     import gspread
     gc = gspread.service_account_from_dict(json.loads(key))
-    return gc.open_by_key(sid).worksheet(TAB)
+    return gc.open_by_key(sid)
+
+
+def is_paper(title):
+    t = title.lower()
+    return "paper" in t or "test" in t
 
 
 def _num(x):
@@ -55,34 +72,91 @@ def _num(x):
         return None
 
 
-def read_positions(ws):
+def _date(x):
+    x = str(x or "").strip()
+    if not x:
+        return None
+    d = pd.to_datetime(x, errors="coerce")
+    return None if pd.isna(d) else d.normalize()
+
+
+def read_positions(vals):
     """Rows with a ticker, keeping their sheet row number for write-back."""
-    vals = ws.get_all_values()
     out = []
     for i, row in enumerate(vals[1:], start=2):
-        row = (row + [""] * 7)[:7]
+        row = (row + [""] * 18)[:18]
         t = row[0].strip().upper().replace(".", "-")
         if not t:
             continue
-        dt = pd.to_datetime(row[2], errors="coerce") if row[2].strip() else None
-        out.append(dict(row=i, ticker=t, account=row[1].strip(), entry_date=dt,
-                        entry=_num(row[3]), shares=_num(row[4]), stop=_num(row[5]), notes=row[6]))
+        out.append(dict(row=i, ticker=t, account=row[1].strip(), entry_date=_date(row[2]),
+                        entry=_num(row[3]), shares=_num(row[4]), stop=_num(row[5]), notes=row[6],
+                        exit_date=_date(row[16]), exit=_num(row[17])))
     return out
 
 
+def _blank(v):
+    return "" if v is None else v
+
+
 def write_results(ws, results, n_rows):
-    """Fill H:M for every sheet row from 2 to the last used row (blank where no position)."""
+    """Fill H:M and S for every sheet row from 2 to the last used row (blank where no position)."""
     if n_rows < 2:
         return
     by_row = {r["row"]: r for r in results}
-    stamp = datetime.now(ZoneInfo("America/Indiana/Indianapolis")).strftime("%Y-%m-%d %-I:%M %p %Z")
-    grid = []
+    stamp = datetime.now(ZoneInfo(STAMP_TZ)).strftime("%Y-%m-%d %-I:%M %p %Z")
+    hm, s = [], []
     for i in range(2, n_rows + 1):
         r = by_row.get(i)
-        grid.append(["", "", "", "", "", ""] if r is None else
-                    [r["close"] if r["close"] is not None else "", r["days"] if r["days"] is not None else "",
-                     r["health"], r["action"], r["why"], "'" + stamp])
-    ws.update(range_name=f"H2:M{n_rows}", values=grid, value_input_option="USER_ENTERED")
+        if r is None:
+            hm.append([""] * 6)
+            s.append([""])
+            continue
+        hm.append([_blank(r["close"]), _blank(r["days"]), r["health"], r["action"], r["why"], "'" + stamp])
+        s.append([_blank(r.get("qqq"))])
+    ws.batch_update([{"range": f"H2:M{n_rows}", "values": hm}, {"range": f"S2:S{n_rows}", "values": s}],
+                    value_input_option="USER_ENTERED")
+
+
+# ------------------------------------------------------------------ QQQ comparisons
+def _close_on(df, d):
+    """Close on date d, or the last close before it."""
+    if df is None or df.empty or d is None:
+        return None
+    s = df["Close"][df.index <= pd.Timestamp(d) + pd.Timedelta(hours=23)]
+    return float(s.iloc[-1]) if len(s) else None
+
+
+def qqq_change(bench, start, end=None):
+    """QQQ % change from the close on `start` to the close on `end` (or the latest close)."""
+    a = _close_on(bench, start)
+    b = _close_on(bench, end) if end is not None else (float(bench["Close"].iloc[-1]) if bench is not None and not bench.empty else None)
+    if not a or b is None:
+        return None
+    return round(b / a - 1, 4)
+
+
+def update_cash(sh, bench):
+    """Cash tab: F = QQQ close that day, G = the same money in QQQ today (deposits +, withdrawals -)."""
+    try:
+        ws = sh.worksheet(CASH_TAB)
+    except Exception:
+        return
+    vals = ws.get_all_values()
+    n = len(vals)
+    if n < 2 or bench is None or bench.empty:
+        return
+    now = float(bench["Close"].iloc[-1])
+    out = []
+    for row in vals[1:]:
+        row = (row + [""] * 4)[:4]
+        d, kind, amt = _date(row[0]), row[2].strip().lower(), _num(row[3])
+        then = _close_on(bench, d) if d is not None else None
+        if not then or amt is None or kind not in ("deposit", "withdrawal", "interest"):
+            out.append(["", ""])
+            continue
+        same = "" if kind == "interest" else round(amt * now / then * (-1 if kind == "withdrawal" else 1), 2)
+        out.append([round(then, 2), same])
+    ws.update(range_name=f"F2:G{n}", values=out, value_input_option="USER_ENTERED")
 
 
 # ------------------------------------------------------------------ assessment
@@ -136,7 +210,7 @@ def assess(p, chk, df, today):
     if not hit.empty:
         d = hit.index[0]
         return out("SELL", f"Stop ${p['stop']:,.2f} was hit on {d.date()} (low ${hit['Low'].iloc[0]:,.2f}). "
-                           "If your stop order filled, delete this row; if not, sell at the next open.")
+                           "If your stop order filled, enter the Exit date and Exit price; if not, sell at the next open.")
     if health == "Unknown":
         return out("CHECK", "The system couldn't evaluate this ticker today (not enough history or bad data). "
                             "Check it manually; your stop still applies.")
@@ -182,58 +256,112 @@ def assess(p, chk, df, today):
                             f"health {health.lower()}.")
 
 
-def summary_line(results):
+def closed_result(p, df, qqq):
+    """A closed trade: no advice, just the result."""
+    res = dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="", qqq=qqq, action="CLOSED")
+    if p["entry"] is None or p["exit"] is None or p["entry_date"] is None:
+        return dict(res, action="FIX ROW", why="A closed trade needs Entry date, Entry price and Exit price.")
+    ret = p["exit"] / p["entry"] - 1
+    if df is not None and not df.empty:
+        res["days"] = int(((df.index > p["entry_date"]) & (df.index <= p["exit_date"] + pd.Timedelta(hours=23))).sum())
+    vs = f", QQQ {qqq:+.1%} over the same days, so {ret - qqq:+.1%} vs QQQ" if qqq is not None else ""
+    word = "beat" if qqq is not None and ret > qqq else "lagged" if qqq is not None else ""
+    return dict(res, why=f"Closed {p['exit_date'].date()}: {ret:+.1%}{vs}." + (f" The trade {word} the index." if word else ""))
+
+
+def summary_line(results, label="Positions"):
     """Short text for the notification."""
     if results is None:
         return ""
-    if not results:
-        return "Positions: none in your sheet."
-    acts = [f"{r['action']} {r['ticker']}" for r in results if r["action"] != "No action"]
-    ok = sum(r["action"] == "No action" for r in results)
+    live = [r for r in results if r["action"] != "CLOSED"]
+    if not live:
+        return f"{label}: no open positions."
+    acts = [f"{r['action']} {r['ticker']}" for r in live if r["action"] != "No action"]
+    ok = sum(r["action"] == "No action" for r in live)
     bits = acts + ([f"{ok} OK"] if ok else [])
-    return "Positions: " + " · ".join(bits)
+    return f"{label}: " + " · ".join(bits)
+
+
+def account_tabs(sh):
+    """Every tab laid out like Positions (A1 = Ticker), except the helper tabs."""
+    tabs = []
+    for ws in sh.worksheets():
+        if ws.title.strip().lower() in SKIP_TABS:
+            continue
+        vals = ws.get_all_values()
+        if vals and vals[0] and vals[0][0].strip().lower() == "ticker":
+            tabs.append((ws, vals))
+    return tabs
 
 
 def run_positions(S, cfg, data, universe):
-    """Returns (results or None if not configured, sells list). Never raises."""
+    """Checks every account tab. Returns (results or None if not configured, real-account sells, summary text).
+    Never raises."""
     try:
-        ws = open_sheet()
+        sh = open_book()
     except Exception as e:
         print(f"Positions sheet unavailable: {type(e).__name__}: {e}")
         return [], [], f"Positions: couldn't open your sheet ({type(e).__name__}). Check the sharing and secrets."
-    if ws is None:
+    if sh is None:
         print("Positions check not configured (GOOGLE_SA_JSON / POSITIONS_SHEET_ID not set).")
         return None, [], ""
-    pos = read_positions(ws)
-    n_rows = len(ws.get_all_values())
-    if not pos:
-        print("Positions: none in the sheet.")
-        write_results(ws, [], n_rows)
-        return [], [], "Positions: none in your sheet."
+    try:
+        tabs = account_tabs(sh)
+    except Exception as e:
+        print(f"Couldn't list the sheet's tabs: {e}")
+        return [], [], f"Positions: couldn't read your sheet ({type(e).__name__})."
 
-    tickers = list(dict.fromkeys(p["ticker"] for p in pos))
-    missing = [t for t in tickers if t not in data]
+    bench = data.get(cfg.get("benchmark", "QQQ"))
+    books = [(ws, vals, read_positions(vals)) for ws, vals in tabs]
+    open_tickers = list(dict.fromkeys(p["ticker"] for _, _, pos in books for p in pos if p["exit"] is None))
+    all_tickers = list(dict.fromkeys(p["ticker"] for _, _, pos in books for p in pos))
+    missing = [t for t in all_tickers if t not in data]
     if missing:
         try:
             data.update(S.download_data(missing, cfg, cfg["history"]))
         except Exception as e:
             print(f"  position download failed: {e}")
-    chk_df = S.check_stocks(tickers, cfg, universe=universe, data=data)
-    chk = {} if chk_df is None else {r["Ticker"]: r.to_dict() for _, r in chk_df.iterrows()}
+    chk = {}
+    if open_tickers:
+        chk_df = S.check_stocks(open_tickers, cfg, universe=universe, data=data)
+        chk = {} if chk_df is None else {r["Ticker"]: r.to_dict() for _, r in chk_df.iterrows()}
     today = pd.Timestamp.now().normalize()
 
-    results = []
-    for p in pos:
+    every, sells, lines = [], [], []
+    for ws, vals, pos in books:
+        results = []
+        for p in pos:
+            df = data.get(p["ticker"])
+            try:
+                qqq = qqq_change(bench, p["entry_date"], p["exit_date"]) if p["entry_date"] is not None else None
+                if p["exit"] is not None or p["exit_date"] is not None:
+                    if p["exit_date"] is None or p["exit"] is None:
+                        r = dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="", qqq=None,
+                                 action="FIX ROW", why="Fill in both Exit date and Exit price to close this trade.")
+                    else:
+                        r = closed_result(p, df, qqq)
+                else:
+                    r = dict(assess(p, chk.get(p["ticker"]), df, today), qqq=qqq)
+            except Exception as e:
+                r = dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="Unknown", qqq=None,
+                         action="CHECK", why=f"Couldn't evaluate ({type(e).__name__}). Check manually.")
+            results.append(r)
         try:
-            results.append(assess(p, chk.get(p["ticker"]), data.get(p["ticker"]), today))
+            write_results(ws, results, len(vals))
         except Exception as e:
-            results.append(dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="Unknown",
-                                action="CHECK", why=f"Couldn't evaluate ({type(e).__name__}). Check manually."))
+            print(f"Couldn't write results back to {ws.title}: {e}")
+        paper = is_paper(ws.title)
+        if not paper:
+            sells += [r["ticker"] for r in results if r["action"].startswith("SELL")]
+        lines.append(summary_line(results, ws.title))
+        print(f"[{ws.title}]{' (paper)' if paper else ''}")
+        for r in results:
+            print(f"  {r['ticker']:6s} {r['action']:22s} {r['why']}")
+        every += [dict(r, tab=ws.title, paper=paper) for r in results]
     try:
-        write_results(ws, results, n_rows)
+        update_cash(sh, bench)
     except Exception as e:
-        print(f"Couldn't write results back to the sheet: {e}")
-    sells = [r["ticker"] for r in results if r["action"].startswith("SELL")]
-    for r in results:
-        print(f"  {r['ticker']:6s} {r['action']:22s} {r['why']}")
-    return results, sells, summary_line(results)
+        print(f"Couldn't update the Cash tab: {e}")
+    if not books:
+        lines = ["Positions: no account tabs found in your sheet."]
+    return every, list(dict.fromkeys(sells)), "\n".join(lines)

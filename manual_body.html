@@ -253,12 +253,15 @@ The <b>"What it needs to become a BUY"</b> column spells it out in plain English
 <h2 id="positions">11. Your Positions</h2>
 <div class="card">
 <p>Your holdings live in a private Google Sheet, <b>Screener Positions</b>. After every daily run the system checks each one and writes a recommended action back into the sheet. The action also goes into your notification. Positions never appear on the public report site.</p>
-<p><b>You Fill In</b> (yellow headers): Ticker, Account, Entry date, Entry price, Shares, Stop (from the report on the day you bought; it never moves), Notes. Add a row when you buy; delete it when you sell.</p>
-<p><b>The System Fills In</b> (gray headers): Last close, Days held, Health, Action, Why, Updated, plus formulas for Gain %, Value and $ at risk to stop.</p>
+<p><b>Tabs:</b> <b>Positions</b> is your real account. <b>Paper</b> is pretend money, checked exactly the same way, so you can practise or test the rules. <b>Cash</b> logs money in and out of each account. <b>Compare</b> puts the accounts side by side and against QQQ. To add another account, duplicate the Paper tab and rename it; any tab with "paper" or "test" in its name never puts SELL in the notification title.</p>
+<p><b>You Fill In</b> (yellow headers): Ticker, Account, Entry date, Entry price, Shares, Stop (from the report on the day you bought; it never moves), Notes. Add a row when you buy. When you sell, don't delete the row: fill in <b>Exit date</b> and <b>Exit price</b>. The row is then marked CLOSED and kept as your track record.</p>
+<p><b>The System Fills In</b> (gray headers): Last close, Days held, Health, Action, Why, Updated, and <b>QQQ same period</b> (what QQQ did from your entry to your exit, or to today). Formulas add Gain %, Value, $ at risk to stop, Trade return and <b>vs QQQ</b> (the trade's return minus QQQ's).</p>
+<p><b>Cash Tab:</b> one line per money movement: Date, Account (the tab's name), Type (Deposit, Withdrawal or Interest) and Amount. Your first line for each account is the Deposit you funded it with; add each monthly deposit and the interest from your statement. The system fills in what the same money would be worth if each deposit had bought QQQ that day.</p>
+<p><b>Compare Tab:</b> for each account, money put in, cash on hand (deposits plus interest, minus buys, plus sells), open value, account value, gain and return, then the key test: <b>Ahead of QQQ</b>, account value minus what the same deposits would be worth in QQQ. Below that: closed trades, win rate, average trade return and average vs QQQ per trade.</p>
 <p><b>Health:</b> <b>Strong</b> = it would still qualify as a BUY (ignoring the market regime) · <b>Fading</b> = still in trend but scoring under 60 · <b>Broken</b> = the uptrend broke or its relative-strength chart vs QQQ flipped to SELL.</p>
 <p><b>One Action per Position</b>, checked in this order:</p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Check</th><th>Action</th></tr></thead><tbody>
-<tr><td class="tk">Stop hit</td><td>SELL at the next open (delete the row if your stop order already filled)</td></tr>
+<tr><td class="tk">Stop hit</td><td>SELL at the next open (if your stop order already filled, enter the Exit date and Exit price)</td></tr>
 <tr><td class="tk">Health broken</td><td>SELL: leadership has faded</td></tr>
 <tr><td class="tk">Earnings within 7 days</td><td>HOLD THROUGH EARNINGS if your gain is at least your stop distance; otherwise SELL BEFORE EARNINGS</td></tr>
 <tr><td class="tk">Red flag VETO?</td><td>HOLD (stop unchanged) if health is strong; SELL if fading</td></tr>
@@ -267,7 +270,7 @@ The <b>"What it needs to become a BUY"</b> column spells it out in plain English
 <tr><td class="tk">Fresh BUY again</td><td>ADD (OPTIONAL), only within the 1% risk budget</td></tr>
 <tr><td class="tk">Everything else</td><td>No action, with a status line (day count, gain, distance to stop)</td></tr>
 </tbody></table></div>
-<p class="small" style="margin-top:8px">An empty sheet reports "Positions: none in your sheet." A row missing its entry date, price or stop shows FIX ROW. Any SELL puts the ticker at the front of the notification title at top priority.</p>
+<p class="small" style="margin-top:8px">The notification has one line per account, e.g. "Positions: 2 OK" and "Paper: SELL NVDA". A row missing its entry date, price or stop, or with only half an exit, shows FIX ROW. Any SELL in a real account puts the ticker at the front of the notification title at top priority. Closed rows show CLOSED with the trade's result vs QQQ.</p>
 <p class="small muted">The stop and 60-day hold are backtested; the earnings, red-flag and 60-day extension rules are judgment calls, not yet tested on their own.</p>
 </div>
 

@@ -837,7 +837,7 @@ def main():
     if sells:
         title = f"SELL {', '.join(sells[:3])} | " + title
         prio = max(prio, 5)
-    pos_action = bool(pres) and any(r["action"] != "No action" for r in pres)
+    pos_action = bool(pres) and any(r["action"] not in ("No action", "CLOSED") for r in pres)
 
     if notes:
         body += "\nNote: " + " ".join(notes)
