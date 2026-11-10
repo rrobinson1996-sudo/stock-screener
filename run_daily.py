@@ -268,6 +268,10 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
 <h2>Buy candidates</h2>
 {buy_html}
 
+<h2>Watch list</h2>
+<p class="muted small">On deck, not buys. The "What it needs" column says what each one is still missing.</p>
+{table(watch, watch_cols)}
+
 <h2>Your watchlist</h2>
 <p class="muted small">Tickers from watchlist.txt, run through the same gates, score and red-flag check.</p>
 {watchlist_cards(mine)}
@@ -276,9 +280,6 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
 <p class="muted small">Looks for reasons <b>not</b> to buy. VETO? = estimates being cut or deal-driven news.
 REVIEW = read the headlines. Never adds a stock the screener didn't flag.</p>
 {red_flag_cards(stocks)}
-
-<h2>Watch list</h2>
-{table(watch, watch_cols)}
 
 <h2>Funds (vs SPY)</h2>
 <p class="muted small">Which part of the market is leading. Edge vs SPY is thin in backtests - use as context, not a trading signal.</p>
