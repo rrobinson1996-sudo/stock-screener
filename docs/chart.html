@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P&amp;F chart</title><style>
+:root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1b;--muted:#6b6b66;--line:#e4e3de;
+--good:#1f7a4d;--goodbg:#e3f3ea;--warn:#8a5a00;--warnbg:#fbf0d9;--bad:#a8322b;--badbg:#f9e3e1;--mutedbg:#ecebe7}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--fg:#ecebe6;--muted:#9c9b95;--line:#2f2f2c;
+--good:#6fcf9b;--goodbg:#173326;--warn:#f0c46b;--warnbg:#3a2f14;--bad:#f08a80;--badbg:#3d1d1a;--mutedbg:#2a2a27}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);
+font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:17px;margin:26px 0 8px}
+.muted{color:var(--muted)}.small{font-size:13px}
+.status{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.status .card{margin:0}.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.value{font-size:18px;font-weight:600;margin-top:4px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.good{color:var(--good);background:var(--goodbg)}.warn{color:var(--warn);background:var(--warnbg)}
+.bad{color:var(--bad);background:var(--badbg)}.muted.badge{color:var(--muted);background:var(--mutedbg)}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}.wrap td{white-space:normal}.wrap td.tk{white-space:nowrap}td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tk{font-weight:700}.big{font-size:17px}.empty{color:var(--muted);font-style:italic}
+ul{padding-left:18px;margin:8px 0 0}li{margin-bottom:6px;font-size:13px}.hits{color:var(--bad);font-size:12px}
+a{color:inherit}.warnbox{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:10px 12px;margin-top:12px}
+footer{margin:30px 0 10px;font-size:12px;color:var(--muted)}
+pre{background:var(--mutedbg);border-radius:8px;padding:10px;overflow-x:auto;font-size:12px;white-space:pre}
+code{background:var(--mutedbg);border-radius:4px;padding:1px 4px;font-size:12px}
+.toc{columns:2;column-gap:18px;margin:6px 0 0;padding-left:20px}.toc li{margin-bottom:4px}
+h2[id]{scroll-margin-top:12px}
+.funnel{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.funnel .step{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
+.funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
+.funnel .step:nth-child(7){margin:0 12%}
+.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.bad-text{color:var(--bad);font-weight:600}.warn-text{color:var(--warn);font-weight:600}.warn-card{border-color:var(--warn);background:var(--warnbg)}.bad-card{border-color:var(--bad);background:var(--badbg)}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
+.test{border-top:1px solid var(--line);padding:8px 0}.test .row{margin-bottom:2px}.test .badge{margin-left:4px;font-size:11px}
+.funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
+font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px;white-space:nowrap}
+main>.row:first-child{flex-wrap:wrap;row-gap:2px}main>.row:first-child h1{margin-right:auto}
+
+.ch{padding:6px 0;background:var(--card)}.ch svg{display:block}
+.g{stroke:var(--line);stroke-width:.6}.x,.xs{stroke:var(--good);stroke-width:1.6;fill:none;stroke-linecap:round}.xs{stroke-width:2.6}
+.o,.os{stroke:var(--bad);stroke-width:1.6;fill:none}.os{stroke-width:2.6}
+.ax,.mo,.yr,.ml{fill:var(--muted);font-size:9px;font-family:-apple-system,Segoe UI,Roboto,sans-serif}.yr{font-weight:700}
+.m{stroke-dasharray:3 3;stroke-width:1.2}.m.now{stroke:var(--fg)}.ml.now{fill:var(--fg)}
+.m.stop{stroke:var(--bad)}.ml.stop{fill:var(--bad)}.m.tgt{stroke:var(--good)}.ml.tgt{fill:var(--good)}
+select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px;margin:10px 0}
+</style></head><body><main>
+<div class="row"><h1>P&amp;F Chart</h1><span class="small links"><a href="index.html">Report</a><a href="scores.html">All scores</a></span></div>
+<select id="pick"></select>
+<div id="c"><p class="empty">Loading…</p></div>
+<div class="card" style="margin-top:16px"><div class="label">How to read it</div><ul class="small">
+<li><b>X</b> = price rising one box; <b>O</b> = falling one box. A new column starts only after a 3-box reversal, so small wiggles are ignored. Time isn't on the axis.</li>
+<li><b>Bold column</b> = that column triggered a signal: an X column above the previous X high is a BUY (double-top breakout); an O column below the previous O low is a SELL.</li>
+<li><b>Numbers along the bottom</b> = month each column started (1&ndash;9, A=Oct, B=Nov, C=Dec), with the year marked where it changes.</li>
+<li><b>Lines:</b> Now = latest close · <span style="color:var(--bad)">Stop</span> = 5&times;ATR stop · <span style="color:var(--good)">Target</span> = measured-move objective.</li>
+<li><b>Relative-strength chart:</b> the stock divided by QQQ. Rising X's mean it's beating the index, the core leadership test.</li>
+<li>The chart opens at the latest column; swipe left to see history.</li></ul></div>
+</main><script>
+const C=12,L=58,T=8,B=28;
+const q=new URLSearchParams(location.search);let tk=(q.get('t')||'').toUpperCase();
+function fmtP(v){return v>=1000?v.toFixed(0):v>=100?v.toFixed(1):v.toFixed(2);}
+function svg(ch,marks){
+ const cols=ch.cols,lb=Math.log(1+ch.box);let lo=1e9,hi=-1e9;
+ cols.forEach(c=>{lo=Math.min(lo,c[1]);hi=Math.max(hi,c[2]);});
+ marks=marks.filter(m=>m.price>0).map(m=>Object.assign({lvl:Math.floor(Math.log(m.price)/lb+1e-9)},m))
+  .filter(m=>m.lvl>=lo-15&&m.lvl<=hi+15);
+ marks.forEach(m=>{lo=Math.min(lo,m.lvl);hi=Math.max(hi,m.lvl);});lo-=1;hi+=1;
+ const n=hi-lo+1,gw=cols.length*C,W=L+gw+50,H=T+n*C+B;
+ let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+ for(let r=0;r<=n;r++){const y=T+r*C;s+=`<line x1="${L}" y1="${y}" x2="${L+gw}" y2="${y}" class="g"/>`;}
+ for(let i=0;i<=cols.length;i++){const x=L+i*C;s+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+n*C}" class="g"/>`;}
+ const step=Math.max(1,Math.ceil(n/16));
+ for(let l=hi;l>=lo;l--){if((hi-l)%step)continue;const y=T+(hi-l)*C+C/2+3;
+  s+=`<text x="${L-5}" y="${y}" text-anchor="end" class="ax">${fmtP(Math.pow(1+ch.box,l))}</text>`;}
+ let prev=null;
+ cols.forEach((c,i)=>{const x=L+i*C;
+  for(let l=c[1];l<=c[2];l++){const y=T+(hi-l)*C;
+   if(c[0])s+=`<path d="M${x+2.5} ${y+2.5}L${x+C-2.5} ${y+C-2.5}M${x+C-2.5} ${y+2.5}L${x+2.5} ${y+C-2.5}" class="${c[4]?'xs':'x'}"/>`;
+   else s+=`<circle cx="${x+C/2}" cy="${y+C/2}" r="${C/2-2.5}" class="${c[4]?'os':'o'}"/>`;}
+  if(c[3]!==prev){const mo=+c[3].slice(5),code=mo<10?mo:'ABC'[mo-10];
+   s+=`<text x="${x+C/2}" y="${T+n*C+11}" text-anchor="middle" class="mo">${code}</text>`;
+   if(prev===null||c[3].slice(0,4)!==prev.slice(0,4))s+=`<text x="${x}" y="${T+n*C+23}" class="yr">${c[3].slice(0,4)}</text>`;prev=c[3];}
+ });
+ marks.forEach(m=>{const y=T+(hi-m.lvl)*C+C/2;
+  s+=`<line x1="${L}" y1="${y}" x2="${L+gw+3}" y2="${y}" class="m ${m.cls}"/><text x="${L+gw+6}" y="${y+3}" class="ml ${m.cls}">${m.label}</text>`;});
+ return s+'</svg>';
+}
+function colWord(ch){const c=ch.cols[ch.cols.length-1];return c[0]?'X column (rising)':'O column (falling)';}
+function sigWord(ch){return ch.signal?`${ch.signal}${ch.bars_ago!=null?`, ${ch.bars_ago} trading day${ch.bars_ago==1?'':'s'} ago`:''}`:'none yet';}
+function badge(t){const m={BUY:'good',CLEAN:'good',WATCH:'warn',REVIEW:'warn','VETO?':'bad'};return t?`<span class="badge ${m[t]||'muted'}">${t}</span>`:'';}
+function show(d){
+ const s=d.stocks[tk];const el=document.getElementById('c');
+ if(!s){el.innerHTML=`<p class="empty">${tk?tk+' is not tracked today.':'Pick a stock.'} Add it with <b>add ${tk||'TICKER'}</b> in your command topic.</p>`;return;}
+ document.title=tk+' P&F';
+ let h=`<div class="card"><div class="row"><span class="tk big" style="font-size:22px">${tk}</span><span>${badge(s.tier)} ${badge(s.flags)} <b style="font-size:18px;margin-left:4px">${s.score!=null?Math.round(s.score):''}</b></span></div>
+ <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
+ if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
+  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% · ${s.px.rev}-box reversal</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
+ if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% · rising X's = beating ${d.benchmark}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
+ el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
+}
+fetch('data/pnf.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+ const sel=document.getElementById('pick');const names=Object.keys(d.stocks).sort();
+ sel.innerHTML='<option value="">Choose a stock…</option>'+names.map(n=>`<option ${n===tk?'selected':''}>${n}</option>`).join('');
+ sel.onchange=()=>{tk=sel.value;history.replaceState(null,'','?t='+tk);show(d);};show(d);
+}).catch(()=>{document.getElementById('c').innerHTML='<p class="empty">Chart data not available yet. It appears after the next daily run.</p>';});
+</script></body></html>

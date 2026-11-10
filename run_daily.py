@@ -17,6 +17,7 @@ Environment variables (set in the GitHub repo settings):
 """
 
 import html
+import json
 import os
 import re
 import sys
@@ -110,7 +111,7 @@ def table(df, cols):
             elif kind == "need":
                 cells.append(f'<td class="need">{esc(v)}</td>')
             elif kind == "ticker":
-                cells.append(f'<td class="tk">{esc(v)}</td>')
+                cells.append(f'<td class="tk"><a href="chart.html?t={esc(v)}">{esc(v)}</a></td>')
             else:
                 cells.append(f'<td class="{"num" if kind else ""}">{esc(fmt(v, kind))}</td>')
         body.append("<tr>" + "".join(cells) + "</tr>")
@@ -133,7 +134,7 @@ def red_flag_cards(res):
             + f' <span class="hits">[{esc(h["hits"])}]</span></li>'
             for h in (r.get("Headlines") or []))
         out.append(
-            f'<div class="card"><div class="row"><span class="tk big">{esc(r["Ticker"])}</span>'
+            f'<div class="card"><div class="row"><a class="tk big" href="chart.html?t={esc(r["Ticker"])}">{esc(r["Ticker"])}</a>'
             f'{badge(r["News"])}</div>'
             f'<div class="muted small">EPS estimate revisions, this fiscal year (30d): {esc(eps)}</div>'
             f'<div class="small">{esc(r.get("NewsFlags") or "Nothing flagged.")}</div>'
@@ -157,12 +158,12 @@ def watchlist_cards(mine):
     out = []
     for _, r in mine.iterrows():
         if r.get("Tier") == "n/a":
-            out.append(f'<div class="card"><div class="row"><span class="tk big">{esc(r["Ticker"])}</span>'
+            out.append(f'<div class="card"><div class="row"><a class="tk big" href="chart.html?t={esc(r["Ticker"])}">{esc(r["Ticker"])}</a>'
                        f'{badge("NO DATA")}</div><div class="small">{esc(r["Verdict"])}</div></div>')
             continue
         flags = r.get("NewsFlags") if isinstance(r.get("NewsFlags"), str) else ""
         out.append(
-            f'<div class="card"><div class="row"><span class="tk big">{esc(r["Ticker"])}</span>'
+            f'<div class="card"><div class="row"><a class="tk big" href="chart.html?t={esc(r["Ticker"])}">{esc(r["Ticker"])}</a>'
             f'<span>{badge(r["Tier"])} {badge(r.get("News"))}</span></div>'
             f'<div class="small muted">Score {fmt(r.get("Score"), "int")} · close {fmt(r.get("Close"), "money")} · '
             f'stop {fmt(r.get("Stop"), "money")} ({fmt(r.get("RiskPct"), "pct")}) · '
@@ -401,7 +402,8 @@ def all_scores(stocks, mine):
             rows.append(dict(Ticker=r["Ticker"], Score=r.get("Score"), Tier=tier,
                              Source="NASDAQ-100 + watchlist" if r["Ticker"] in wl else "NASDAQ-100",
                              Reason=reason, RedFlags=r.get("News") if isinstance(r.get("News"), str) else "",
-                             Close=r.get("Close"), Failed=r.get("Failed") or ""))
+                             Close=r.get("Close"), Failed=r.get("Failed") or "",
+                             Stop=r.get("Stop"), Objective=r.get("Objective")))
     if mine is not None:
         have = {x["Ticker"] for x in rows}
         for _, r in mine.iterrows():
@@ -409,13 +411,126 @@ def all_scores(stocks, mine):
                 continue
             rows.append(dict(Ticker=r["Ticker"], Score=r.get("Score"), Tier=r.get("Tier"), Source="Watchlist",
                              Reason=S.watch_needs(r) if r.get("Tier") == "WATCH" else r.get("Verdict"), RedFlags=r.get("News") if isinstance(r.get("News"), str) else "",
-                             Close=r.get("Close"), Failed=r.get("Failed") or ""))
+                             Close=r.get("Close"), Failed=r.get("Failed") or "",
+                             Stop=r.get("Stop"), Objective=r.get("Objective")))
     df = pd.DataFrame(rows)
     if df.empty:
         return df
     order = {"BUY": 0, "WATCH": 1, "NO": 2, "n/a": 3}
     df["_o"] = df["Tier"].map(order).fillna(2)
     return df.sort_values(["_o", "Score"], ascending=[True, False], na_position="last").drop(columns="_o")
+
+
+def _clean(v):
+    if v is None:
+        return None
+    if isinstance(v, float) and (pd.isna(v) or v != v):
+        return None
+    if hasattr(v, "item"):
+        v = v.item()
+    return round(v, 4) if isinstance(v, float) else v
+
+
+def build_chart_data(scores, data, cfg, asof):
+    """One small JSON with P&F columns for every tracked stock (drawn on the phone)."""
+    syms = [t for t in scores["Ticker"] if t in data]
+    _, prepared, _ = S.prepare(syms, data, cfg)
+    W = cfg["pnf_window"]
+    out = {}
+    for _, r in scores.iterrows():
+        t = r["Ticker"]
+        if t not in prepared:
+            continue
+        df, rs = prepared[t]
+        try:
+            pxb, rsb = S.box_sizes(df, rs, len(df) - 1, len(rs) - 1, cfg)
+            px = S.pnf_chart_data(df["Close"].iloc[-W:], pxb, cfg["px_reversal"])
+            rsd = S.pnf_chart_data(rs.iloc[-W:], rsb, cfg["rs_reversal"])
+        except Exception as e:
+            print(f"  chart data skipped for {t}: {e}")
+            continue
+        out[t] = {k: _clean(v) for k, v in dict(
+            tier=r["Tier"], score=r["Score"], reason=r["Reason"], flags=r["RedFlags"], src=r["Source"],
+            close=r["Close"], stop=r.get("Stop"), target=r.get("Objective")).items()}
+        out[t].update(px=px, rs=rsd)
+    return dict(asof=asof, benchmark=cfg["benchmark"], stocks=out)
+
+
+CHART_JS = r"""
+const C=12,L=58,T=8,B=28;
+const q=new URLSearchParams(location.search);let tk=(q.get('t')||'').toUpperCase();
+function fmtP(v){return v>=1000?v.toFixed(0):v>=100?v.toFixed(1):v.toFixed(2);}
+function svg(ch,marks){
+ const cols=ch.cols,lb=Math.log(1+ch.box);let lo=1e9,hi=-1e9;
+ cols.forEach(c=>{lo=Math.min(lo,c[1]);hi=Math.max(hi,c[2]);});
+ marks=marks.filter(m=>m.price>0).map(m=>Object.assign({lvl:Math.floor(Math.log(m.price)/lb+1e-9)},m))
+  .filter(m=>m.lvl>=lo-15&&m.lvl<=hi+15);
+ marks.forEach(m=>{lo=Math.min(lo,m.lvl);hi=Math.max(hi,m.lvl);});lo-=1;hi+=1;
+ const n=hi-lo+1,gw=cols.length*C,W=L+gw+50,H=T+n*C+B;
+ let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+ for(let r=0;r<=n;r++){const y=T+r*C;s+=`<line x1="${L}" y1="${y}" x2="${L+gw}" y2="${y}" class="g"/>`;}
+ for(let i=0;i<=cols.length;i++){const x=L+i*C;s+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+n*C}" class="g"/>`;}
+ const step=Math.max(1,Math.ceil(n/16));
+ for(let l=hi;l>=lo;l--){if((hi-l)%step)continue;const y=T+(hi-l)*C+C/2+3;
+  s+=`<text x="${L-5}" y="${y}" text-anchor="end" class="ax">${fmtP(Math.pow(1+ch.box,l))}</text>`;}
+ let prev=null;
+ cols.forEach((c,i)=>{const x=L+i*C;
+  for(let l=c[1];l<=c[2];l++){const y=T+(hi-l)*C;
+   if(c[0])s+=`<path d="M${x+2.5} ${y+2.5}L${x+C-2.5} ${y+C-2.5}M${x+C-2.5} ${y+2.5}L${x+2.5} ${y+C-2.5}" class="${c[4]?'xs':'x'}"/>`;
+   else s+=`<circle cx="${x+C/2}" cy="${y+C/2}" r="${C/2-2.5}" class="${c[4]?'os':'o'}"/>`;}
+  if(c[3]!==prev){const mo=+c[3].slice(5),code=mo<10?mo:'ABC'[mo-10];
+   s+=`<text x="${x+C/2}" y="${T+n*C+11}" text-anchor="middle" class="mo">${code}</text>`;
+   if(prev===null||c[3].slice(0,4)!==prev.slice(0,4))s+=`<text x="${x}" y="${T+n*C+23}" class="yr">${c[3].slice(0,4)}</text>`;prev=c[3];}
+ });
+ marks.forEach(m=>{const y=T+(hi-m.lvl)*C+C/2;
+  s+=`<line x1="${L}" y1="${y}" x2="${L+gw+3}" y2="${y}" class="m ${m.cls}"/><text x="${L+gw+6}" y="${y+3}" class="ml ${m.cls}">${m.label}</text>`;});
+ return s+'</svg>';
+}
+function colWord(ch){const c=ch.cols[ch.cols.length-1];return c[0]?'X column (rising)':'O column (falling)';}
+function sigWord(ch){return ch.signal?`${ch.signal}${ch.bars_ago!=null?`, ${ch.bars_ago} trading day${ch.bars_ago==1?'':'s'} ago`:''}`:'none yet';}
+function badge(t){const m={BUY:'good',CLEAN:'good',WATCH:'warn',REVIEW:'warn','VETO?':'bad'};return t?`<span class="badge ${m[t]||'muted'}">${t}</span>`:'';}
+function show(d){
+ const s=d.stocks[tk];const el=document.getElementById('c');
+ if(!s){el.innerHTML=`<p class="empty">${tk?tk+' is not tracked today.':'Pick a stock.'} Add it with <b>add ${tk||'TICKER'}</b> in your command topic.</p>`;return;}
+ document.title=tk+' P&F';
+ let h=`<div class="card"><div class="row"><span class="tk big" style="font-size:22px">${tk}</span><span>${badge(s.tier)} ${badge(s.flags)} <b style="font-size:18px;margin-left:4px">${s.score!=null?Math.round(s.score):''}</b></span></div>
+ <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
+ if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
+  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% · ${s.px.rev}-box reversal</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
+ if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% · rising X's = beating ${d.benchmark}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
+ el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
+}
+fetch('data/pnf.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+ const sel=document.getElementById('pick');const names=Object.keys(d.stocks).sort();
+ sel.innerHTML='<option value="">Choose a stock…</option>'+names.map(n=>`<option ${n===tk?'selected':''}>${n}</option>`).join('');
+ sel.onchange=()=>{tk=sel.value;history.replaceState(null,'','?t='+tk);show(d);};show(d);
+}).catch(()=>{document.getElementById('c').innerHTML='<p class="empty">Chart data not available yet. It appears after the next daily run.</p>';});
+"""
+
+
+def build_chart_page():
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P&amp;F chart</title><style>{CSS}
+.ch{{padding:6px 0;background:var(--card)}}.ch svg{{display:block}}
+.g{{stroke:var(--line);stroke-width:.6}}.x,.xs{{stroke:var(--good);stroke-width:1.6;fill:none;stroke-linecap:round}}.xs{{stroke-width:2.6}}
+.o,.os{{stroke:var(--bad);stroke-width:1.6;fill:none}}.os{{stroke-width:2.6}}
+.ax,.mo,.yr,.ml{{fill:var(--muted);font-size:9px;font-family:-apple-system,Segoe UI,Roboto,sans-serif}}.yr{{font-weight:700}}
+.m{{stroke-dasharray:3 3;stroke-width:1.2}}.m.now{{stroke:var(--fg)}}.ml.now{{fill:var(--fg)}}
+.m.stop{{stroke:var(--bad)}}.ml.stop{{fill:var(--bad)}}.m.tgt{{stroke:var(--good)}}.ml.tgt{{fill:var(--good)}}
+select{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px;margin:10px 0}}
+</style></head><body><main>
+<div class="row"><h1>P&amp;F Chart</h1><span class="small links"><a href="index.html">Report</a><a href="scores.html">All scores</a></span></div>
+<select id="pick"></select>
+<div id="c"><p class="empty">Loading…</p></div>
+<div class="card" style="margin-top:16px"><div class="label">How to read it</div><ul class="small">
+<li><b>X</b> = price rising one box; <b>O</b> = falling one box. A new column starts only after a 3-box reversal, so small wiggles are ignored. Time isn't on the axis.</li>
+<li><b>Bold column</b> = that column triggered a signal: an X column above the previous X high is a BUY (double-top breakout); an O column below the previous O low is a SELL.</li>
+<li><b>Numbers along the bottom</b> = month each column started (1&ndash;9, A=Oct, B=Nov, C=Dec), with the year marked where it changes.</li>
+<li><b>Lines:</b> Now = latest close · <span style="color:var(--bad)">Stop</span> = {S.CONFIG["stop_atr_mult"]:g}&times;ATR stop · <span style="color:var(--good)">Target</span> = measured-move objective.</li>
+<li><b>Relative-strength chart:</b> the stock divided by QQQ. Rising X's mean it's beating the index, the core leadership test.</li>
+<li>The chart opens at the latest column; swipe left to see history.</li></ul></div>
+</main><script>{CHART_JS}</script></body></html>"""
 
 
 def build_scores_page(df, asof):
@@ -426,7 +541,7 @@ def build_scores_page(df, asof):
         items.append(
             f'<div class="srow" data-t="{esc(r["Ticker"]).lower()}" data-tier="{esc(r["Tier"])}" '
             f'data-src="{"w" if "watchlist" in str(r["Source"]).lower() else "n"}">'
-            f'<div class="row"><span><span class="tk big">{esc(r["Ticker"])}</span> '
+            f'<div class="row"><span><a class="tk big" href="chart.html?t={esc(r["Ticker"])}">{esc(r["Ticker"])}</a> '
             f'<span class="muted small">{esc(r["Source"])}</span></span>'
             f'<span>{badge(r["Tier"])} {flags} <b class="sc">{esc(sc)}</b></span></div>'
             f'<div class="small">{esc(r["Reason"])}</div></div>')
@@ -584,6 +699,12 @@ def main():
     mine = None
     wl = read_watchlist()
     if wl:
+        extra = [t for t in wl if t not in data]
+        if extra:
+            try:
+                data.update(S.download_data(extra, cfg, cfg["history"]))
+            except Exception as e:
+                print(f"  watchlist download failed: {e}")
         try:
             mine = S.check_stocks(wl, cfg, universe=tickers, data=data)
         except Exception as e:
@@ -607,6 +728,12 @@ def main():
         DATA.mkdir(parents=True, exist_ok=True)
         scores.assign(Date=asof).to_csv(DATA / "scores_latest.csv", index=False)
         (DOCS / "scores.html").write_text(build_scores_page(scores, asof), encoding="utf-8")
+        try:
+            cd = build_chart_data(scores, data, cfg, asof)
+            (DATA / "pnf.json").write_text(json.dumps(cd, separators=(",", ":")), encoding="utf-8")
+        except Exception as e:
+            print(f"Chart data failed: {type(e).__name__}: {e}")
+    (DOCS / "chart.html").write_text(build_chart_page(), encoding="utf-8")
     (DOCS / "cheatsheet.html").write_text(build_cheatsheet(), encoding="utf-8")
     if Path("manual_body.html").exists():
         (DOCS / "manual.html").write_text(build_manual(), encoding="utf-8")
@@ -614,7 +741,8 @@ def main():
     dated = (page.replace('href="reports/', 'href="').replace('href="data/', 'href="../data/')
              .replace('href="cheatsheet.html"', 'href="../cheatsheet.html"')
              .replace('href="manual.html"', 'href="../manual.html"')
-             .replace('href="scores.html"', 'href="../scores.html"'))
+             .replace('href="scores.html"', 'href="../scores.html"')
+             .replace('href="chart.html', 'href="../chart.html'))
     (REPORTS / f"{asof}.html").write_text(dated, encoding="utf-8")
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 

@@ -326,21 +326,21 @@ def build_pnf(series, box_pct, reversal):
         up, dn = int(np.floor(v)), int(np.ceil(v))
         if not cols:
             if up >= base + 1:
-                cols.append(dict(type="X", bottom=base, top=up, sig=False))
+                cols.append(dict(type="X", bottom=base, top=up, sig=False, i0=i))
             elif dn <= base - 1:
-                cols.append(dict(type="O", top=base, bottom=dn, sig=False))
+                cols.append(dict(type="O", top=base, bottom=dn, sig=False, i0=i))
             continue
         c = cols[-1]
         if c["type"] == "X":
             if up > c["top"]:
                 c["top"] = up
             elif dn <= c["top"] - reversal:
-                cols.append(dict(type="O", top=c["top"] - 1, bottom=dn, sig=False))
+                cols.append(dict(type="O", top=c["top"] - 1, bottom=dn, sig=False, i0=i))
         else:
             if dn < c["bottom"]:
                 c["bottom"] = dn
             elif up >= c["bottom"] + reversal:
-                cols.append(dict(type="X", bottom=c["bottom"] + 1, top=up, sig=False))
+                cols.append(dict(type="X", bottom=c["bottom"] + 1, top=up, sig=False, i0=i))
         c = cols[-1]
         if len(cols) >= 3 and not c["sig"]:
             prior = cols[-3]
@@ -351,6 +351,23 @@ def build_pnf(series, box_pct, reversal):
                 c["sig"] = True
                 signals.append(("SELL", dates[i], i, prior["bottom"] - 1))
     return cols, signals, len(s)
+
+
+def pnf_chart_data(series, box_pct, reversal, max_cols=60):
+    """Compact P&F chart data for drawing: [[1=X/0=O, bottom, top, 'YYYY-MM', signal], ...]."""
+    s = series.dropna()
+    cols, sigs, n = build_pnf(s, box_pct, reversal)
+    if not cols:
+        return None
+    dates = s.index
+    out = [[1 if c["type"] == "X" else 0, int(c["bottom"]), int(c["top"]),
+            pd.Timestamp(dates[c.get("i0", 0)]).strftime("%Y-%m"), 1 if c["sig"] else 0]
+           for c in cols[-max_cols:]]
+    last = sigs[-1] if sigs else None
+    return dict(box=round(float(box_pct), 5), rev=int(reversal), cols=out,
+                last=round(float(s.iloc[-1]), 4),
+                signal=last[0] if last else None,
+                bars_ago=int(n - 1 - last[2]) if last else None)
 
 
 def box_sizes(df, rs, pos, rpos, cfg):
