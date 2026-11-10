@@ -168,7 +168,7 @@ footer{margin:30px 0 10px;font-size:12px;color:var(--muted)}
 """
 
 
-def build_html(stocks, funds, notes, recent_links):
+def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html"):
     a = stocks.attrs if stocks is not None else {}
     fa = funds.attrs if funds is not None else {}
     asof = a.get("asof", "?")
@@ -207,7 +207,7 @@ def build_html(stocks, funds, notes, recent_links):
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screener {esc(asof)}</title><style>{CSS}</style></head><body><main>
-<h1>Daily Screener</h1>
+<div class="row"><h1>Daily Screener</h1><a class="small" href="{esc(cheat_href)}">Cheat sheet →</a></div>
 <div class="muted small">Market data as of close {esc(asof)} · generated {esc(gen)}</div>
 {notes_html}
 <div class="status">
@@ -240,8 +240,67 @@ Stop = close − {S.CONFIG["stop_atr_mult"]}×ATR(20). Hold ~60 trading days. Re
 </main></body></html>"""
 
 
+CHEAT = """
+<h2>1. Check the stock regime first</h2>
+<div class="card"><p>{caution} <b>CAUTION</b> (QQQ below its trend): no new stock buys. In the 2021&ndash;26 backtest,
+signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ by about 4%.</p>
+<p>{on} <b>RISK-ON</b>: buy candidates are live.</p>
+<p class="muted small">This only governs the stock screener. Monthly buys of your index funds continue either way.</p></div>
+
+<h2>2. Which candidates to take</h2>
+<div class="card"><ul>
+<li><b>Score 60 or more and every gate passed</b> = BUY candidate. Below 60 did no better than a random stock.</li>
+<li><b>Don't favor 75+ over 60&ndash;75.</b> In the backtest, scores of 60&ndash;75 beat QQQ by about 4% over 60 days and 75+ by about 2.6%. A high score isn't a stronger buy.</li>
+<li><b>Red flags decide, not the score:</b><br>
+{clean} take it &nbsp;·&nbsp; {review} read the headlines (skip ones about other companies) &nbsp;·&nbsp;
+{veto} skip or wait &mdash; estimates are being cut or deal news is driving the price &nbsp;·&nbsp; {nodata} check the news yourself</li>
+<li><b>Never add a stock the screener didn't flag</b>, however good the press is.</li>
+</ul></div>
+
+<h2>3. How to place the trade</h2>
+<div class="card"><ul>
+<li><b>Entry:</b> at the next market open.</li>
+<li><b>Stop:</b> the Stop column (close &minus; {stop}&times;ATR). Set it when you enter and don't move it down.</li>
+<li><b>Size:</b> small. Risk about 1% of the account per trade: shares = (account &times; 1%) &divide; (entry &minus; stop). Fractional shares are fine.</li>
+<li><b>Hold:</b> about 60 trading days (~3 months), then reassess. Exit early only if the stop is hit.</li>
+<li><b>Target / Upside:</b> a rough measured-move target, not a forecast. Use it to check reward vs risk: Upside &divide; Risk of 1.5&ndash;2 or better is worth taking. "met" = target already reached.</li>
+<li><b>Earnings:</b> the screener won't flag a stock within 7 days of its report. Note the Next earnings date; it will usually fall inside your hold.</li>
+</ul></div>
+
+<h2>4. What to expect</h2>
+<div class="card"><ul>
+<li>New BUY signals beat QQQ about <b>51%</b> of the time, by about <b>+3 to +5 points on average</b> over 60 days (backtest, before costs).</li>
+<li>The median trade only barely beats QQQ. <b>A few big winners carry the results</b>, so don't sell winners early.</li>
+<li>Expect losing streaks and a worst trade around <b>&minus;30%</b>. That's normal, not a reason to change the settings.</li>
+</ul></div>
+
+<h2>5. Funds section</h2>
+<div class="card"><p>Context only: it shows which part of the market is leading. Ranking funds beat SPY by only 1&ndash;2 points in the backtest, and stops didn't help funds, so don't trade funds off it.</p></div>
+
+<h2>6. Habits</h2>
+<div class="card"><ul>
+<li>Every BUY signal is logged automatically in <a href="data/signals.csv">signals.csv</a>. Note what you actually did.</li>
+<li>Don't tweak settings after a bad week. Review once, after 6&ndash;12 months, against QQQ.</li>
+<li>Selling puts: only with cash to cover 100 shares at the strike; a strike near the Stop column fits the system.</li>
+</ul></div>
+<footer>Numbers come from the 2021&ndash;26 backtest on current NASDAQ-100 members (flattered by survivorship, no costs). Research tool, not financial advice.</footer>
+"""
+
+
+def build_cheatsheet():
+    body = CHEAT.format(caution=badge("CAUTION"), on=badge("RISK-ON"), clean=badge("CLEAN"),
+                        review=badge("REVIEW"), veto=badge("VETO?"), nodata=badge("NO DATA"),
+                        stop=S.CONFIG["stop_atr_mult"])
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Screener cheat sheet</title><style>{CSS}</style></head><body><main>
+<div class="row"><h1>Cheat sheet</h1><a class="small" href="index.html">← Today's report</a></div>
+<div class="muted small">What to do with the daily report.</div>
+{body}</main></body></html>"""
+
+
 # ------------------------------------------------------------------ notify
-def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None):
+def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None, cheat=None):
     topic = os.environ.get("NTFY_TOPIC", "").strip()
     if not topic:
         print("NTFY_TOPIC not set - skipping notification.")
@@ -249,6 +308,10 @@ def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None)
     headers = {"Title": title.encode("ascii", "ignore").decode(), "Priority": str(priority), "Tags": tags}
     if click:
         headers["Click"] = click
+        buttons = [f"view, Open report, {click}"]
+        if cheat:
+            buttons.append(f"view, Cheat sheet, {cheat}")
+        headers["Actions"] = "; ".join(buttons)
     try:
         r = requests.post(f"https://ntfy.sh/{topic}", data=body.encode("utf-8"), headers=headers, timeout=20)
         print(f"Notification sent ({r.status_code}).")
@@ -266,12 +329,23 @@ def summary(stocks, funds):
         if len(buys) > 5:
             lines.append(f"...and {len(buys) - 5} more in the report")
         title = f"Screener: {len(buys)} BUY candidate{'s' if len(buys) > 1 else ''}"
-        body = "\n".join(lines) + (f"\nFunds leading: {lead}" if lead else "")
+        clean = [r.Ticker for _, r in buys.iterrows() if r.get("News") == "CLEAN"]
+        do = ("Do: buy CLEAN names at the next open with the stop shown"
+              + (f" ({', '.join(clean[:4])})" if clean else "")
+              + ". Read REVIEW headlines first. Skip VETO?. Score 60-75 is as good as 75+.")
+        body = do + "\n" + "\n".join(lines) + (f"\nFunds leading: {lead}" if lead else "")
         return title, body, 4, True
     watch = stocks[stocks["Tier"] == "WATCH"].head(3)
     w = ", ".join(f"{r.Ticker} {r.Score:.0f}" for _, r in watch.iterrows()) or "none"
     title = f"Screener: no buys - regime {regime}"
-    body = f"Top watch: {w}" + (f"\nFunds leading: {lead}" if lead else "")
+    if regime == "CAUTION":
+        do = "Do: no new stock buys while QQQ is below trend. Keep your monthly fund buys going."
+    else:
+        do = "Do: nothing new today. Keep your monthly fund buys going."
+    ready = [r.Ticker for _, r in watch.iterrows() if r.get("News") == "CLEAN"]
+    if ready:
+        do += f" First in line if it turns on: {', '.join(ready)}."
+    body = do + f"\nTop watch: {w}" + (f"\nFunds leading: {lead}" if lead else "")
     return title, body, 2, False
 
 
@@ -327,8 +401,10 @@ def main():
     names = sorted({p.stem for p in past} | {asof}, reverse=True)[:15]
     page = build_html(stocks, funds, notes, [(n, f"reports/{n}.html") for n in names])
     (DOCS / "index.html").write_text(page, encoding="utf-8")
+    (DOCS / "cheatsheet.html").write_text(build_cheatsheet(), encoding="utf-8")
     # dated copies link back up one level
-    dated = page.replace('href="reports/', 'href="').replace('href="data/', 'href="../data/')
+    dated = (page.replace('href="reports/', 'href="').replace('href="data/', 'href="../data/')
+             .replace('href="cheatsheet.html"', 'href="../cheatsheet.html"'))
     (REPORTS / f"{asof}.html").write_text(dated, encoding="utf-8")
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 
@@ -336,7 +412,8 @@ def main():
     if notes:
         body += "\nNote: " + " ".join(notes)
     if has_buy or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
-        notify(title, body, prio, click=os.environ.get("REPORT_URL"))
+        url = os.environ.get("REPORT_URL")
+        notify(title, body, prio, click=url, cheat=(url.rstrip("/") + "/cheatsheet.html") if url else None)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Screener cheat sheet</title><style>
+:root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1b;--muted:#6b6b66;--line:#e4e3de;
+--good:#1f7a4d;--goodbg:#e3f3ea;--warn:#8a5a00;--warnbg:#fbf0d9;--bad:#a8322b;--badbg:#f9e3e1;--mutedbg:#ecebe7}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--fg:#ecebe6;--muted:#9c9b95;--line:#2f2f2c;
+--good:#6fcf9b;--goodbg:#173326;--warn:#f0c46b;--warnbg:#3a2f14;--bad:#f08a80;--badbg:#3d1d1a;--mutedbg:#2a2a27}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);
+font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:17px;margin:26px 0 8px}
+.muted{color:var(--muted)}.small{font-size:13px}
+.status{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.status .card{margin:0}.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.value{font-size:18px;font-weight:600;margin-top:4px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.good{color:var(--good);background:var(--goodbg)}.warn{color:var(--warn);background:var(--warnbg)}
+.bad{color:var(--bad);background:var(--badbg)}.muted.badge{color:var(--muted);background:var(--mutedbg)}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tk{font-weight:700}.big{font-size:17px}.empty{color:var(--muted);font-style:italic}
+ul{padding-left:18px;margin:8px 0 0}li{margin-bottom:6px;font-size:13px}.hits{color:var(--bad);font-size:12px}
+a{color:inherit}.warnbox{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:10px 12px;margin-top:12px}
+footer{margin:30px 0 10px;font-size:12px;color:var(--muted)}
+</style></head><body><main>
+<div class="row"><h1>Cheat sheet</h1><a class="small" href="index.html">← Today's report</a></div>
+<div class="muted small">What to do with the daily report.</div>
+
+<h2>1. Check the stock regime first</h2>
+<div class="card"><p><span class="badge bad">CAUTION</span> <b>CAUTION</b> (QQQ below its trend): no new stock buys. In the 2021&ndash;26 backtest,
+signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ by about 4%.</p>
+<p><span class="badge good">RISK-ON</span> <b>RISK-ON</b>: buy candidates are live.</p>
+<p class="muted small">This only governs the stock screener. Monthly buys of your index funds continue either way.</p></div>
+
+<h2>2. Which candidates to take</h2>
+<div class="card"><ul>
+<li><b>Score 60 or more and every gate passed</b> = BUY candidate. Below 60 did no better than a random stock.</li>
+<li><b>Don't favor 75+ over 60&ndash;75.</b> In the backtest, scores of 60&ndash;75 beat QQQ by about 4% over 60 days and 75+ by about 2.6%. A high score isn't a stronger buy.</li>
+<li><b>Red flags decide, not the score:</b><br>
+<span class="badge good">CLEAN</span> take it &nbsp;·&nbsp; <span class="badge warn">REVIEW</span> read the headlines (skip ones about other companies) &nbsp;·&nbsp;
+<span class="badge bad">VETO?</span> skip or wait &mdash; estimates are being cut or deal news is driving the price &nbsp;·&nbsp; <span class="badge muted">NO DATA</span> check the news yourself</li>
+<li><b>Never add a stock the screener didn't flag</b>, however good the press is.</li>
+</ul></div>
+
+<h2>3. How to place the trade</h2>
+<div class="card"><ul>
+<li><b>Entry:</b> at the next market open.</li>
+<li><b>Stop:</b> the Stop column (close &minus; 5.0&times;ATR). Set it when you enter and don't move it down.</li>
+<li><b>Size:</b> small. Risk about 1% of the account per trade: shares = (account &times; 1%) &divide; (entry &minus; stop). Fractional shares are fine.</li>
+<li><b>Hold:</b> about 60 trading days (~3 months), then reassess. Exit early only if the stop is hit.</li>
+<li><b>Target / Upside:</b> a rough measured-move target, not a forecast. Use it to check reward vs risk: Upside &divide; Risk of 1.5&ndash;2 or better is worth taking. "met" = target already reached.</li>
+<li><b>Earnings:</b> the screener won't flag a stock within 7 days of its report. Note the Next earnings date; it will usually fall inside your hold.</li>
+</ul></div>
+
+<h2>4. What to expect</h2>
+<div class="card"><ul>
+<li>New BUY signals beat QQQ about <b>51%</b> of the time, by about <b>+3 to +5 points on average</b> over 60 days (backtest, before costs).</li>
+<li>The median trade only barely beats QQQ. <b>A few big winners carry the results</b>, so don't sell winners early.</li>
+<li>Expect losing streaks and a worst trade around <b>&minus;30%</b>. That's normal, not a reason to change the settings.</li>
+</ul></div>
+
+<h2>5. Funds section</h2>
+<div class="card"><p>Context only: it shows which part of the market is leading. Ranking funds beat SPY by only 1&ndash;2 points in the backtest, and stops didn't help funds, so don't trade funds off it.</p></div>
+
+<h2>6. Habits</h2>
+<div class="card"><ul>
+<li>Every BUY signal is logged automatically in <a href="data/signals.csv">signals.csv</a>. Note what you actually did.</li>
+<li>Don't tweak settings after a bad week. Review once, after 6&ndash;12 months, against QQQ.</li>
+<li>Selling puts: only with cash to cover 100 shares at the strike; a strike near the Stop column fits the system.</li>
+</ul></div>
+<footer>Numbers come from the 2021&ndash;26 backtest on current NASDAQ-100 members (flattered by survivorship, no costs). Research tool, not financial advice.</footer>
+</main></body></html>
