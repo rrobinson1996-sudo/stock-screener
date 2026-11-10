@@ -198,6 +198,10 @@ tr:last-child td{border-bottom:0}.wrap td{white-space:normal}.wrap td.tk{white-s
 ul{padding-left:18px;margin:8px 0 0}li{margin-bottom:6px;font-size:13px}.hits{color:var(--bad);font-size:12px}
 a{color:inherit}.warnbox{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:10px 12px;margin-top:12px}
 footer{margin:30px 0 10px;font-size:12px;color:var(--muted)}
+pre{background:var(--mutedbg);border-radius:8px;padding:10px;overflow-x:auto;font-size:12px;white-space:pre}
+code{background:var(--mutedbg);border-radius:4px;padding:1px 4px;font-size:12px}
+.toc{columns:2;column-gap:18px;margin:6px 0 0;padding-left:20px}.toc li{margin-bottom:4px}
+h2[id]{scroll-margin-top:12px}.links a{margin-left:12px}
 """
 
 
@@ -240,7 +244,7 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screener {esc(asof)}</title><style>{CSS}</style></head><body><main>
-<div class="row"><h1>Daily Screener</h1><a class="small" href="{esc(cheat_href)}">Cheat sheet →</a></div>
+<div class="row"><h1>Daily Screener</h1><span class="small links"><a href="{esc(cheat_href)}">Cheat sheet</a><a href="{esc(cheat_href.replace("cheatsheet", "manual"))}">Manual</a></span></div>
 <div class="muted small">Market data as of close {esc(asof)} · generated {esc(gen)}</div>
 {notes_html}
 <div class="status">
@@ -352,6 +356,14 @@ The GitHub form replies in about 2 minutes. Messages sent overnight are picked u
 """
 
 
+def build_manual(src="manual_body.html"):
+    body = Path(src).read_text(encoding="utf-8")
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Screener manual</title><style>{CSS}</style></head><body><main>
+{body}</main></body></html>"""
+
+
 def build_cheatsheet():
     body = CHEAT.format(caution=badge("CAUTION"), on=badge("RISK-ON"), clean=badge("CLEAN"),
                         review=badge("REVIEW"), veto=badge("VETO?"), nodata=badge("NO DATA"),
@@ -359,7 +371,7 @@ def build_cheatsheet():
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screener cheat sheet</title><style>{CSS}</style></head><body><main>
-<div class="row"><h1>Cheat sheet</h1><a class="small" href="index.html">← Today's report</a></div>
+<div class="row"><h1>Cheat sheet</h1><span class="small links"><a href="index.html">Report</a><a href="manual.html">Manual</a></span></div>
 <div class="muted small">What to do with the daily report.</div>
 {body}</main></body></html>"""
 
@@ -493,9 +505,12 @@ def main():
     page = build_html(stocks, funds, notes, [(n, f"reports/{n}.html") for n in names], mine=mine)
     (DOCS / "index.html").write_text(page, encoding="utf-8")
     (DOCS / "cheatsheet.html").write_text(build_cheatsheet(), encoding="utf-8")
+    if Path("manual_body.html").exists():
+        (DOCS / "manual.html").write_text(build_manual(), encoding="utf-8")
     # dated copies link back up one level
     dated = (page.replace('href="reports/', 'href="').replace('href="data/', 'href="../data/')
-             .replace('href="cheatsheet.html"', 'href="../cheatsheet.html"'))
+             .replace('href="cheatsheet.html"', 'href="../cheatsheet.html"')
+             .replace('href="manual.html"', 'href="../manual.html"'))
     (REPORTS / f"{asof}.html").write_text(dated, encoding="utf-8")
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 

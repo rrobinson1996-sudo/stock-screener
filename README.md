@@ -1,5 +1,7 @@
 # Daily Screener
 
+**User manual:** https://rrobinson1996-sudo.github.io/stock-screener/manual.html (source: `manual_body.html`)
+
 Runs every weekday after the US market close on GitHub Actions and publishes a
 phone-friendly report to GitHub Pages, with an optional push notification via
 [ntfy](https://ntfy.sh).
