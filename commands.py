@@ -31,6 +31,15 @@ WATCHLIST = Path("watchlist.txt")
 STATE = Path(".state/ntfy_since")
 PENDING = Path("pending_commands.txt")
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,9}$")
+MAX_WATCHLIST = 25   # keeps the daily run fast and Yahoo-friendly
+MAX_CHECK = 10       # tickers checked per command run
+HELP = ("Commands (send to your command topic):\n"
+        "add MANH - add to watchlist + check\n"
+        "remove MANH - take off watchlist (never affects the NASDAQ-100 scan)\n"
+        "check NVDA FAST - check only (or just send NVDA)\n"
+        "list - show watchlist\n"
+        f"Limits: {MAX_WATCHLIST} on the watchlist, {MAX_CHECK} checks per run. "
+        "Replies in 15-30 min, 6am-10pm CT. Full guide: cheat sheet.")
 VERBS = {"add": "add", "+": "add", "remove": "remove", "rm": "remove", "del": "remove",
          "delete": "remove", "-": "remove", "check": "check", "?": "check", "list": "list",
          "ls": "list", "help": "help"}
@@ -128,15 +137,20 @@ def apply():
         if bad:
             replies.append(f"Ignored (not a ticker): {', '.join(bad)}")
         if verb == "help" or (verb != "list" and not tickers):
-            replies.append("Commands: add MANH | remove MANH | check MANH | list")
+            replies.append(HELP)
             continue
         if verb == "list":
             replies.append("Watchlist: " + (", ".join(wl) or "empty"))
         elif verb == "add":
             new = [t for t in tickers if t not in wl]
+            dup = [t for t in tickers if t in wl]
+            room = max(MAX_WATCHLIST - len(wl), 0)
+            if len(new) > room:
+                replies.append(f"Watchlist is capped at {MAX_WATCHLIST}. Not added: "
+                               f"{', '.join(new[room:])}. Remove something first.")
+                new = new[:room]
             wl += new
             changed |= bool(new)
-            dup = [t for t in tickers if t not in new]
             replies.append(" ".join(filter(None, [
                 f"Added {', '.join(new)}." if new else "",
                 f"Already on the list: {', '.join(dup)}." if dup else ""])))
@@ -154,6 +168,9 @@ def apply():
         replies.append("Watchlist now: " + (", ".join(wl) or "empty"))
 
     to_check = list(dict.fromkeys(to_check))
+    if len(to_check) > MAX_CHECK:
+        replies.append(f"Only {MAX_CHECK} checks per run - skipped: {', '.join(to_check[MAX_CHECK:])}.")
+        to_check = to_check[:MAX_CHECK]
     if to_check:
         res = S.check_stocks(to_check)
         if res is None:

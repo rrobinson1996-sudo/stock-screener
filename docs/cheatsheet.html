@@ -22,7 +22,7 @@ h1{font-size:22px;margin:4px 0 2px}h2{font-size:17px;margin:26px 0 8px}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-tr:last-child td{border-bottom:0}td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}.wrap td{white-space:normal}.wrap td.tk{white-space:nowrap}td.num{text-align:right;font-variant-numeric:tabular-nums}
 .tk{font-weight:700}.big{font-size:17px}.empty{color:var(--muted);font-style:italic}
 ul{padding-left:18px;margin:8px 0 0}li{margin-bottom:6px;font-size:13px}.hits{color:var(--bad);font-size:12px}
 a{color:inherit}.warnbox{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:10px 12px;margin-top:12px}
@@ -73,5 +73,33 @@ signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ 
 <li>Don't tweak settings after a bad week. Review once, after 6&ndash;12 months, against QQQ.</li>
 <li>Selling puts: only with cash to cover 100 shares at the strike; a strike near the Stop column fits the system.</li>
 </ul></div>
+<h2>7. Phone commands</h2>
+<div class="card"><p class="small muted">Type these in the Message box of your <b>command</b> topic in ntfy
+(not the report topic), or use GitHub &rarr; Actions &rarr; Watchlist commands &rarr; Run workflow.</p>
+<div class="scroll" style="margin:8px 0"><table class="wrap"><thead><tr><th>Send</th><th>What it does</th></tr></thead><tbody>
+<tr><td class="tk">add MANH</td><td>Adds to your watchlist and replies with the full check</td></tr>
+<tr><td class="tk">add MANH, COST</td><td>Several at once (commas or spaces)</td></tr>
+<tr><td class="tk">remove COST</td><td>Takes it off your watchlist</td></tr>
+<tr><td class="tk">check NVDA FAST</td><td>Replies with the check; watchlist unchanged</td></tr>
+<tr><td class="tk">NVDA</td><td>Same as check</td></tr>
+<tr><td class="tk">list</td><td>Replies with your current watchlist</td></tr>
+<tr><td class="tk">help</td><td>Replies with this command list</td></tr>
+</tbody></table></div>
+<p class="small"><b>Timing:</b> ntfy commands are picked up every 15 minutes, 6 AM&ndash;10 PM Central; replies usually take 15&ndash;30 minutes.
+The GitHub form replies in about 2 minutes. Messages sent overnight are picked up in the morning, but ntfy only keeps messages for about 12 hours.</p>
+</div>
+
+<h2>8. Command cautions</h2>
+<div class="card"><ul>
+<li><b>remove only edits your watchlist.</b> It never touches the NASDAQ-100 scan, which is downloaded fresh every run. A NASDAQ-100 stock you remove still appears in the main lists.</li>
+<li><b>Limits:</b> up to 25 stocks on the watchlist and 10 checks per command run. Each check downloads the whole NASDAQ-100 (about a minute), and a long list slows the daily run and invites Yahoo to throttle it.</li>
+<li><b>Don't send the same command over and over.</b> Messages are batched, so five quick messages become one run. Resending won't make the reply come faster.</li>
+<li><b>Typos get added as-is.</b> "add APPL" puts APPL on the list and the report will say "no price data". Send <span class="tk">remove APPL</span> to fix it.</li>
+<li><b>Funds don't belong on the watchlist.</b> ETFs get judged against QQQ there, which isn't meaningful; use the Funds section instead.</li>
+<li><b>Same rules apply.</b> A watchlist stock is only a buy if the regime is RISK-ON, every gate passes and the score is 60+. Adding it doesn't lower the bar.</li>
+<li><b>Commands never trade.</b> They only change the list and send checks. Buying and selling stay with you.</li>
+<li><b>Keep your topic names private.</b> Anyone who knows the command topic could edit your watchlist (nothing else). Every change is saved in watchlist.txt's history on GitHub, so mistakes can be undone.</li>
+</ul></div>
+
 <footer>Numbers come from the 2021&ndash;26 backtest on current NASDAQ-100 members (flattered by survivorship, no costs). Research tool, not financial advice.</footer>
 </main></body></html>
