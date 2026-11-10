@@ -1,0 +1,3 @@
+__pycache__/
+screener_*.csv
+backtest_signals.csv

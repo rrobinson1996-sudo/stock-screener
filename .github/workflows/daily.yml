@@ -1,0 +1,46 @@
+name: Daily screener
+
+on:
+  schedule:
+    # 21:40 UTC on weekdays = 4:40 PM Eastern (winter) / 5:40 PM Eastern (summer).
+    # GitHub sometimes starts scheduled runs 10-30 minutes late.
+    - cron: "40 21 * * 1-5"
+  workflow_dispatch:        # adds a "Run workflow" button on the Actions tab
+
+permissions:
+  contents: write           # lets the job commit the new report to docs/
+
+concurrency:
+  group: daily-screener
+  cancel-in-progress: false
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Run screener and build report
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NOTIFY_ONLY_ON_BUY: ${{ vars.NOTIFY_ONLY_ON_BUY }}
+          REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python run_daily.py
+
+      - name: Publish report
+        if: always()
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          git diff --cached --quiet || git commit -m "Report $(date -u +%F)"
+          git push
