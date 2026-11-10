@@ -27,6 +27,7 @@ import json
 import os
 import re
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -74,7 +75,7 @@ def write_results(ws, results, n_rows):
     if n_rows < 2:
         return
     by_row = {r["row"]: r for r in results}
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    stamp = datetime.now(ZoneInfo("America/Indiana/Indianapolis")).strftime("%Y-%m-%d %-I:%M %p %Z")
     grid = []
     for i in range(2, n_rows + 1):
         r = by_row.get(i)

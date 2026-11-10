@@ -24,6 +24,7 @@ import sys
 import time
 import traceback
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import pandas as pd
@@ -235,7 +236,7 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
     asof = a.get("asof", "?")
     regime = "RISK-ON" if a.get("risk_on") else "CAUTION"
     fregime = "RISK-ON" if fa.get("risk_on") else "CAUTION"
-    gen = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    gen = datetime.now(ZoneInfo("America/Indiana/Indianapolis")).strftime("%Y-%m-%d %-I:%M %p %Z")
 
     buys = stocks[stocks["Tier"] == "BUY"].copy() if stocks is not None else None
     if buys is not None and "Upside" in buys:
