@@ -3,6 +3,7 @@
 
 <div class="card" style="margin-top:14px"><div class="label">Contents</div>
 <ol class="small toc">
+<li><a href="#strategy">The strategy</a></li>
 <li><a href="#plan">The plan in one minute</a></li>
 <li><a href="#where">Where everything lives</a></li>
 <li><a href="#routine">Your routine</a></li>
@@ -19,7 +20,44 @@
 <li><a href="#setup">Setup reference</a></li>
 </ol></div>
 
-<h2 id="plan">1. The plan in one minute</h2>
+<h2 id="strategy">1. The strategy</h2>
+<div class="card">
+<p><b>The goal:</b> find the handful of NASDAQ-100 stocks that are genuinely leading the market, buy them only when the market backdrop supports them, cut the ones that fail, and let the ones that work run for about three months. All of this stays a small add-on to a core of index funds that do the heavy lifting.</p>
+
+<p><b>The idea behind it.</b> Strong stocks tend to stay strong for a while. Stocks that have beaten the market over the past year, and are still beating it, have historically kept outperforming over the next several months. This is momentum, one of the most consistently documented patterns in market research. It happens partly because big investors build positions over weeks rather than days, and partly because good news gets priced in gradually. The system tries to catch that persistence early and safely:</p>
+<ul class="small">
+<li><b>Relative strength</b> (each stock vs QQQ, charted with Point &amp; Figure) asks: is it beating the market, not just rising with it?</li>
+<li><b>Momentum and trend</b> ask: has it been strong for a year, and is it still in a healthy uptrend?</li>
+<li><b>The market regime</b> asks: is the overall tide rising? Even leaders struggle when QQQ is below its trend. This turned out to be the single most important rule.</li>
+<li><b>Wyckoff volume patterns</b> ask: are there signs that buyers have been quietly absorbing supply? This one refines the ranking; it isn't required.</li>
+<li><b>The red-flag check</b> asks: is there anything the chart can't see, such as falling earnings estimates or a takeover rumor?</li>
+</ul>
+
+<p><b>The process: a funnel.</b></p>
+<div class="funnel">
+<div class="step"><span class="n">1</span><div><b>Market regime</b><br><span class="small muted">QQQ in an uptrend? If not, stop here: no new stock buys.</span></div></div>
+<div class="step"><span class="n">2</span><div><b>Universe: about 100 stocks</b><br><span class="small muted">The NASDAQ-100, plus anything on your watchlist.</span></div></div>
+<div class="step"><span class="n">3</span><div><b>Gates: the pass/fail filters</b><br><span class="small muted">Uptrend, top-half momentum, outperforming QQQ, not overextended, no earnings within 7 days, not too volatile, liquid. Usually 80&ndash;95% of stocks fail here.</span></div></div>
+<div class="step"><span class="n">4</span><div><b>Score of 60 or more</b><br><span class="small muted">Ranks the survivors on momentum, RS quality, price breakout, Wyckoff and closeness to the high.</span></div></div>
+<div class="step"><span class="n">5</span><div><b>Red-flag veto</b><br><span class="small muted">Skip anything with estimate cuts or deal-driven news; read the rest.</span></div></div>
+<div class="step"><span class="n">6</span><div><b>Trade plan</b><br><span class="small muted">Buy at the next open, stop at 5&times;ATR below, risk about 1% of the account, hold about 60 trading days.</span></div></div>
+<div class="step"><span class="n">7</span><div><b>Log and review</b><br><span class="small muted">Every signal is logged. Judge the system once, after 6&ndash;12 months, against QQQ.</span></div></div>
+</div>
+
+<p style="margin-top:12px"><b>The principles that hold it together:</b></p>
+<ul class="small">
+<li><b>Rules over opinions.</b> The same tested rules every day, applied automatically. Your judgment goes into following them, not into overriding them.</li>
+<li><b>Risk before reward.</b> The stop and the position size are set before you buy. Losses stay small; a few large winners carry the results.</li>
+<li><b>Outside information can only say no.</b> News, analysts and newsletters can veto a trade, never create one.</li>
+<li><b>Evidence before changes.</b> Every rule here earned its place in a 5-year backtest that included the 2022 bear market. Changes get tested the same way, and settings aren't tuned to make the past look better.</li>
+<li><b>Doing nothing is a valid result.</b> Most days the answer is "no new buys", and that's the system working.</li>
+<li><b>The core comes first.</b> Monthly index-fund contributions are the main engine. The screener is a disciplined way to try for a few extra points on a small slice.</li>
+</ul>
+
+<p><b>What it is not:</b> a forecast, a day-trading system, or a way to grow a small account fast. It doesn't know what the market will do tomorrow. It only tilts the odds toward stocks that are already behaving like leaders, and keeps you out when conditions are poor.</p>
+</div>
+
+<h2 id="plan">2. The plan in one minute</h2>
 <div class="card"><ul>
 <li><b>Core (most of your money):</b> automatic monthly buys of a broad index fund (VOO/VTI and/or QQQM). No screening, no timing. Keep buying through CAUTION markets.</li>
 <li><b>Satellite (a small slice):</b> individual NASDAQ-100 stocks the screener flags as BUY, only when the stock regime is RISK-ON, every gate passes, the score is 60+, and the red-flag check doesn't veto it.</li>
@@ -28,7 +66,7 @@
 </ul>
 <p class="small muted">Honest expectation: the edge is real but modest (a few points per trade over QQQ in backtests). Contributions matter far more than stock picking at small account sizes.</p></div>
 
-<h2 id="where">2. Where everything lives</h2>
+<h2 id="where">3. Where everything lives</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>What</th><th>Where</th></tr></thead><tbody>
 <tr><td class="tk">Daily report</td><td><a href="index.html">rrobinson1996-sudo.github.io/stock-screener</a> (add to your phone's home screen)</td></tr>
 <tr><td class="tk">Cheat sheet</td><td><a href="cheatsheet.html">cheatsheet.html</a>: the one-page "what do I do"</td></tr>
@@ -41,7 +79,7 @@
 <tr><td class="tk">Colab</td><td>For backtests and ad-hoc checks; loads the code from GitHub</td></tr>
 </tbody></table></div>
 
-<h2 id="routine">3. Your routine</h2>
+<h2 id="routine">4. Your routine</h2>
 <div class="card">
 <p><b>Every weekday, automatically</b> (about 4:40 PM Eastern; GitHub sometimes starts 10&ndash;30 min late):</p>
 <ol class="small">
@@ -54,12 +92,12 @@
 <ol class="small">
 <li>Read the "Do:" line. On most days it says no new buys: you're done.</li>
 <li>On a BUY day, open the report. For each candidate check the red-flag badge: CLEAN = OK, REVIEW = read the headlines, VETO? = skip.</li>
-<li>For a trade you take: buy at the next open, set the stop from the Stop column, size it small (section 6), and note it in your log.</li>
+<li>For a trade you take: buy at the next open, set the stop from the Stop column, size it small (section 7), and note it in your log.</li>
 <li>Hold about 60 trading days unless the stop is hit.</li>
 <li>Once, after 6&ndash;12 months: compare your logged trades with QQQ over the same periods.</li>
 </ol></div>
 
-<h2 id="report">4. Reading the report</h2>
+<h2 id="report">5. Reading the report</h2>
 <div class="card"><ul>
 <li><b>Status cards:</b> Stock regime (QQQ) decides whether stock buys are allowed. Fund regime (SPY) is context. Buy candidates is the count. Stocks evaluated should be ~99/101; much lower means data trouble.</li>
 <li><b>Yellow note boxes:</b> warnings about the run (roster fallback, partial download, earnings dates missing). Treat that day's results with caution.</li>
@@ -71,11 +109,11 @@
 <li><b>History:</b> past reports and the signal log.</li>
 </ul></div>
 
-<h2 id="glossary">5. Column glossary</h2>
+<h2 id="glossary">6. Column glossary</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Column</th><th>Meaning</th></tr></thead><tbody>
-<tr><td class="tk">Score</td><td>0&ndash;100 quality rank (section 6). 60+ needed for BUY. 60&ndash;75 has done as well as 75+.</td></tr>
+<tr><td class="tk">Score</td><td>0&ndash;100 quality rank (section 7). 60+ needed for BUY. 60&ndash;75 has done as well as 75+.</td></tr>
 <tr><td class="tk">Tier</td><td>BUY, WATCH, or NO (watchlist only)</td></tr>
-<tr><td class="tk">Red flags</td><td>CLEAN / REVIEW / VETO? / NO DATA (section 7)</td></tr>
+<tr><td class="tk">Red flags</td><td>CLEAN / REVIEW / VETO? / NO DATA (section 8)</td></tr>
 <tr><td class="tk">Close</td><td>Last full-day closing price</td></tr>
 <tr><td class="tk">Stop</td><td>Close &minus; 5 &times; ATR(20). Your exit if the trade fails.</td></tr>
 <tr><td class="tk">Risk</td><td>How far the stop is below the close, in %</td></tr>
@@ -86,11 +124,11 @@
 <tr><td class="tk">Mom rank</td><td>12-month return (skipping the latest month), ranked 0&ndash;100 within the NASDAQ-100. Needs 50+.</td></tr>
 <tr><td class="tk">Off high</td><td>% below its 52-week high. Needs 25% or less.</td></tr>
 <tr><td class="tk">Wyckoff</td><td>Volume pattern found in the last 90 days: SC = selling climax, ST = secondary test on lighter volume, SOS = sign of strength, * = SOS closed above the rally high. Earnings reactions and 4%+ gap-ups never count as SOS.</td></tr>
-<tr><td class="tk">Missing / Failed</td><td>Which gate(s) it didn't pass (section 6)</td></tr>
+<tr><td class="tk">Missing / Failed</td><td>Which gate(s) it didn't pass (section 7)</td></tr>
 <tr><td class="tk">PxBox / RSBox</td><td>P&amp;F box sizes used (CSV only): set per stock from its volatility</td></tr>
 </tbody></table></div>
 
-<h2 id="rules">6. The strategy rules</h2>
+<h2 id="rules">7. The strategy rules</h2>
 <div class="card">
 <p><b>Gates (all must pass):</b></p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Gate</th><th>Rule</th></tr></thead><tbody>
@@ -109,7 +147,7 @@
 <p><b>Selling puts instead:</b> only with cash for 100 shares at the strike. A strike near the Stop column fits the system.</p>
 <p class="small muted">P&amp;F charts use closing prices, 3-box reversal, and box sizes scaled to each stock's volatility (1&times;ATR for price, 1.5&times; the RS line's average daily move for RS), rounded to 0.25% and kept between 0.5% and 6%.</p></div>
 
-<h2 id="flags">7. Red-flag check</h2>
+<h2 id="flags">8. Red-flag check</h2>
 <div class="card">
 <p>Looks for reasons <b>not</b> to buy. It can veto or flag a stock, never add one.</p>
 <ul>
@@ -125,7 +163,7 @@
 </tbody></table></div>
 <p class="small muted" style="margin-top:8px">Limits: only Yahoo's 10&ndash;20 most recent headlines per stock; Yahoo's feed includes related market stories, so keyword hits produce false alarms. That's why headline hits get REVIEW, not VETO.</p></div>
 
-<h2 id="watchlist">8. Watchlist and phone commands</h2>
+<h2 id="watchlist">9. Watchlist and phone commands</h2>
 <div class="card">
 <p><b>Watchlist:</b> the file <b>watchlist.txt</b> in the repo, one ticker per line, any US stock. It's checked every day in its own report section. Edit it on GitHub (pencil icon &rarr; Commit changes) or with commands.</p>
 <p><b>Commands</b>: type in the Message box of your <b>command</b> topic in ntfy (or GitHub app &rarr; Actions &rarr; Watchlist commands &rarr; Run workflow):</p>
@@ -145,7 +183,7 @@
 <li>Keep both topic names private. Every watchlist change is in GitHub history, so it can be undone.</li>
 </ul></div>
 
-<h2 id="colab">9. Using Colab</h2>
+<h2 id="colab">10. Using Colab</h2>
 <div class="card">
 <p><b>Cell 1 (run first, and after any restart):</b> loads the latest code from GitHub:</p>
 <pre>!wget -q -O wyckoff_pnf_screener.py https://raw.githubusercontent.com/rrobinson1996-sudo/stock-screener/main/wyckoff_pnf_screener.py
@@ -167,7 +205,7 @@ out = check_stocks(TICKERS)</pre>
 <p class="small"><b>Fund mode backtest:</b> <code>run_backtest(dict(CONFIG, benchmark="SPY", use_earnings=False, require_risk_on=False, min_dollar_vol=10e6), tickers=[...ETFs...])</code></p>
 <p class="small muted">"NameError: ... is not defined" means cell 1 hasn't run since Colab restarted. Run it again.</p></div>
 
-<h2 id="settings">10. Changing settings</h2>
+<h2 id="settings">11. Changing settings</h2>
 <div class="card">
 <p>All settings are in <b>CONFIG</b> at the top of <b>wyckoff_pnf_screener.py</b> on GitHub. Edit with the pencil icon &rarr; Commit changes. The next daily run uses them; rerun Colab cell 1 before backtesting.</p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Setting</th><th>Now</th><th>Effect</th></tr></thead><tbody>
@@ -185,7 +223,7 @@ out = check_stocks(TICKERS)</pre>
 <p class="small" style="margin-top:8px"><b>Other files:</b> watchlist.txt (your list) · run_daily.py (report, fund list, cheat sheet) · commands.py (phone commands, limits) · .github/workflows/ (schedules).</p>
 <p class="small"><b>Rule:</b> don't change settings because of a bad week or to make a backtest look better. When we reweighted the score to fit 3 years of results, it did worse over 5 years. Change one thing, backtest it, and lock it.</p></div>
 
-<h2 id="evidence">11. What the backtest showed</h2>
+<h2 id="evidence">12. What the backtest showed</h2>
 <div class="card">
 <p class="small muted">Weekly evaluations, Aug 2021 &ndash; Aug 2026, current NASDAQ-100 members, 60-day holds, before costs. Survivorship bias flatters everything, so compare against the baseline, not zero.</p>
 <div class="scroll"><table><thead><tr><th>60 days after signal</th><th>Baseline</th><th>BUY new entries</th></tr></thead><tbody>
@@ -203,7 +241,7 @@ out = check_stocks(TICKERS)</pre>
 <li><b>Funds:</b> ranking ETFs vs SPY added only 1&ndash;2 points, and stops didn't help.</li>
 </ul></div>
 
-<h2 id="decisions">12. Decisions we made (and why)</h2>
+<h2 id="decisions">13. Decisions we made (and why)</h2>
 <div class="card"><ul class="small">
 <li><b>Rewrote the original Gemini code:</b> its "target hit" signal was fake, breakouts weren't real double tops, Wyckoff events weren't required to happen in order, and errors were silently hidden.</li>
 <li><b>Added momentum, trend and regime gates</b> with long research records; Wyckoff became a scoring bonus, not a requirement.</li>
@@ -216,7 +254,7 @@ out = check_stocks(TICKERS)</pre>
 <li><b>Crypto:</b> only BTC/ETH have a reasonable case, as a small slice. Altcoins fail the volatility gate and are mostly gambling.</li>
 </ul></div>
 
-<h2 id="trouble">13. Troubleshooting</h2>
+<h2 id="trouble">14. Troubleshooting</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Problem</th><th>Fix</th></tr></thead><tbody>
 <tr><td class="tk">Run shows a red X / "Screener FAILED" notification</td><td>Actions &rarr; open the failed run &rarr; click the red step &rarr; copy the log and ask Claude. Often Yahoo throttling: just Re-run.</td></tr>
 <tr><td class="tk">No notification</td><td>Check the NTFY_TOPIC secret matches the app's topic exactly (no spaces). Check the run succeeded.</td></tr>
@@ -230,7 +268,7 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">Node.js / Ubuntu warnings on runs</td><td>Harmless GitHub announcements.</td></tr>
 </tbody></table></div>
 
-<h2 id="setup">14. Setup reference</h2>
+<h2 id="setup">15. Setup reference</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Where (repo Settings)</th><th>Name</th><th>Value</th></tr></thead><tbody>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_TOPIC</td><td>Report topic name</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_CMD_TOPIC</td><td>Command topic name</td></tr>

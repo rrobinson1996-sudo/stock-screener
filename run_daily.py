@@ -201,7 +201,14 @@ footer{margin:30px 0 10px;font-size:12px;color:var(--muted)}
 pre{background:var(--mutedbg);border-radius:8px;padding:10px;overflow-x:auto;font-size:12px;white-space:pre}
 code{background:var(--mutedbg);border-radius:4px;padding:1px 4px;font-size:12px}
 .toc{columns:2;column-gap:18px;margin:6px 0 0;padding-left:20px}.toc li{margin-bottom:4px}
-h2[id]{scroll-margin-top:12px}.links a{margin-left:12px}
+h2[id]{scroll-margin-top:12px}
+.funnel{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.funnel .step{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
+.funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
+.funnel .step:nth-child(7){margin:0 12%}
+.funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
+font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px}
 """
 
 
