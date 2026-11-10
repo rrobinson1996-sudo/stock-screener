@@ -207,7 +207,7 @@ h2[id]{scroll-margin-top:12px}
 .funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
 .funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
 .funnel .step:nth-child(7){margin:0 12%}
-.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}.edge{color:var(--good)}.put{font-size:11px;color:var(--muted)}
+.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
 .test{border-top:1px solid var(--line);padding:8px 0}.test .row{margin-bottom:2px}.test .badge{margin-left:4px;font-size:11px}
 .funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
 font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px}
