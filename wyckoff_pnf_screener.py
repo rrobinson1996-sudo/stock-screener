@@ -1149,6 +1149,27 @@ def run_backtest(cfg=CONFIG, tickers=None, data=None, earnings=None):
           "P&F groups counted once when a stock enters the group):")
     print(pd.DataFrame(rows_s).to_string(index=False))
 
+    # ---- does the P&F upside target (or reward-to-risk) predict results among BUY signals?
+    up = pd.to_numeric(bt["Upside"], errors="coerce")
+    rk = pd.to_numeric(bt["RiskPct"], errors="coerce")
+    rr = up / rk
+    for label, series, edges, names in (
+        ("Upside to P&F target", up, [0, 10, 20, 35, np.inf], ["0-10%", "10-20%", "20-35%", "35%+"]),
+        ("Reward-to-risk (Upside / Risk)", rr, [0, 1, 2, 3, np.inf], ["under 1", "1-2", "2-3", "3+"]),
+    ):
+        rows_u = []
+        for grp_name, gmask in (("BUY candidates", bt["Tier"] == "BUY"), ("BUY new entries", bt["NewEntry"])):
+            met = gmask & ~(series > 0)
+            r = _summary(bt, met, f"{grp_name}: target met / none", cfg["bt_horizons"])
+            rows_u.append(r)
+            for lo, hi, nm in zip(edges[:-1], edges[1:], names):
+                m = gmask & (series > lo) & (series <= hi)
+                rows_u.append(_summary(bt, m, f"{grp_name}: {nm}", cfg["bt_horizons"]))
+        cols_u = ["Group", "N", f"Excess{H}d_avg%", f"Excess{H}d_med%", f"Beat_QQQ_{H}d%",
+                  "StopTrade_avg%", "StopTrade_win%", "Worst_trade%"]
+        print(f"\n {label}: does more upside mean better results? (BUY signals, {H}-day hold)")
+        print(pd.DataFrame(rows_u).reindex(columns=cols_u).to_string(index=False))
+
     print("\nCAVEATS: current index members only (survivorship bias - compare against the "
           "baseline row, not zero);\n         overlapping weekly windows overstate sample size; "
           "no commissions/slippage.")
