@@ -39,7 +39,8 @@ HELP = ("Commands (send to your command topic):\n"
         "check NVDA FAST - check only (or just send NVDA)\n"
         "list - show watchlist\n"
         f"Limits: {MAX_WATCHLIST} on the watchlist, {MAX_CHECK} checks per run. "
-        "Replies in 15-30 min, 6am-10pm CT. Full guide: cheat sheet.")
+        "Replies come here (not in the command topic) in 15-30 min, 6am-10pm CT. "
+        "Added stocks also show in the daily report under Your watchlist. Full guide: cheat sheet.")
 VERBS = {"add": "add", "+": "add", "remove": "remove", "rm": "remove", "del": "remove",
          "delete": "remove", "-": "remove", "check": "check", "?": "check", "list": "list",
          "ls": "list", "help": "help"}

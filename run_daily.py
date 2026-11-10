@@ -363,6 +363,7 @@ signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ 
 <tr><td class="tk">list</td><td>Replies with your current watchlist</td></tr>
 <tr><td class="tk">help</td><td>Replies with this command list</td></tr>
 </tbody></table></div>
+<p class="small"><b>Where the answer shows up:</b> not in the command topic, which only shows what you sent. Replies arrive as a new notification in the report topic (and the public topic), and added stocks appear in the next daily report under "Your watchlist".</p>
 <p class="small"><b>Timing:</b> ntfy commands are picked up every 15 minutes, 6 AM&ndash;10 PM Central; replies usually take 15&ndash;30 minutes.
 The GitHub form replies in about 2 minutes. Messages sent overnight are picked up in the morning, but ntfy only keeps messages for about 12 hours.</p>
 </div>
