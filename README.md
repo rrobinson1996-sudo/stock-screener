@@ -16,11 +16,28 @@ Edit `watchlist.txt` (one ticker per line, any US stock) and commit. Every
 daily report then includes a "Your watchlist" section with each ticker's
 gates, score, red-flag check and a plain-English verdict.
 
+## Commands from your phone
+
+Send a message to your ntfy **command** topic, or use Actions → **Watchlist
+commands** → Run workflow:
+
+| Message | Does |
+|---|---|
+| `add MANH` | adds to `watchlist.txt` and replies with the full check |
+| `remove COST` | removes it |
+| `check NVDA FAST` (or just `NVDA`) | replies with the check, list unchanged |
+| `list` | replies with the current watchlist |
+
+ntfy messages are picked up every 15 minutes, 6 AM to 10 PM Central (GitHub
+can start late, so allow up to ~30 minutes). The workflow form replies in about
+2 minutes.
+
 ## Settings (repo → Settings)
 
 | Where | Name | Value |
 |---|---|---|
-| Secrets and variables → Actions → **Secrets** | `NTFY_TOPIC` | your private ntfy topic name |
+| Secrets and variables → Actions → **Secrets** | `NTFY_TOPIC` | your private ntfy topic name (reports and replies) |
+| Secrets and variables → Actions → **Secrets** | `NTFY_CMD_TOPIC` | a second private topic you send commands to |
 | Secrets and variables → Actions → **Variables** (optional) | `NOTIFY_ONLY_ON_BUY` | `true` to notify only when there is a BUY candidate |
 | Pages | Source | Deploy from a branch → `main` → `/docs` |
 

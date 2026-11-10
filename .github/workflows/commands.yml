@@ -1,0 +1,63 @@
+name: Watchlist commands
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "e.g.  add MANH  |  remove COST  |  check NVDA, FAST  |  list"
+        required: true
+  schedule:
+    # Check your ntfy command topic every 15 minutes, 6 AM to 10 PM Central.
+    # GitHub often starts these late, so allow up to ~30 minutes for a reply.
+    - cron: "*/15 12-23 * * *"
+    - cron: "*/15 0-3 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watchlist-commands
+  cancel-in-progress: false
+
+jobs:
+  commands:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Look for new commands
+        id: fetch
+        env:
+          CMD: ${{ github.event.inputs.command }}
+          NTFY_CMD_TOPIC: ${{ secrets.NTFY_CMD_TOPIC }}
+        run: python3 commands.py fetch
+
+      - uses: actions/setup-python@v6
+        if: steps.fetch.outputs.has == 'true'
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install packages
+        if: steps.fetch.outputs.has == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Apply commands and reply
+        if: steps.fetch.outputs.has == 'true'
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python commands.py apply
+
+      - name: Save watchlist changes
+        if: steps.fetch.outputs.has == 'true'
+        run: |
+          git config user.name "screener-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add watchlist.txt .state
+          if ! git diff --cached --quiet; then
+            git commit -m "Watchlist commands $(date -u +%F' '%H:%M)"
+            git pull --rebase origin main
+            git push
+          fi

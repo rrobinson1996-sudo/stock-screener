@@ -42,5 +42,8 @@ jobs:
           git config user.name "screener-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs
-          git diff --cached --quiet || git commit -m "Report $(date -u +%F)"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Report $(date -u +%F)"
+            git pull --rebase origin main
+            git push
+          fi
