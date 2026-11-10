@@ -59,6 +59,7 @@ select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10
 <li><b>Numbers along the bottom</b> = month each column started (1&ndash;9, A=Oct, B=Nov, C=Dec), with the year marked where it changes.</li>
 <li><b>Lines:</b> Now = latest close · <span style="color:var(--bad)">Stop</span> = 5&times;ATR stop · <span style="color:var(--good)">Target</span> = measured-move objective.</li>
 <li><b>Relative-strength chart:</b> the stock divided by QQQ. Rising X's mean it's beating the index, the core leadership test.</li>
+<li><b>Why the two charts use different box sizes:</b> each box is sized to how much that line normally moves, so a signal means the same thing on a calm stock and a volatile one. The price box is 1&times; the stock's average daily range (ATR over 20 days) as a percent of price. The relative-strength line has no daily high or low, so its box is 1.5&times; its average daily move over 100 days. It usually moves less than the price, so its boxes are often smaller. Both are rounded to 0.25% and kept between 0.5% and 6%, and they're set fresh each day from the latest data.</li>
 <li>The chart opens at the latest column; swipe left to see history.</li></ul></div>
 </main><script>
 const C=12,L=58,T=8,B=28;
@@ -100,8 +101,8 @@ function show(d){
  let h=`<div class="card"><div class="row"><span class="tk big" style="font-size:22px">${tk}</span><span>${badge(s.tier)} ${badge(s.flags)} <b style="font-size:18px;margin-left:4px">${s.score!=null?Math.round(s.score):''}</b></span></div>
  <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
  if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
-  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% · ${s.px.rev}-box reversal</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
- if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% · rising X's = beating ${d.benchmark}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
+  h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="scroll ch">${svg(s.px,mk)}</div>`;}
+ if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${d.benchmark}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>`;}
  el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
 }
 fetch('data/pnf.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
