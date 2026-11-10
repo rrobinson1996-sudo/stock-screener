@@ -1119,6 +1119,36 @@ def run_backtest(cfg=CONFIG, tickers=None, data=None, earnings=None):
               f"{cfg['stop_atr_mult']:g}xATR daily | breakeven = to entry once up 1x risk | "
               "pnf_trail = under each completed P&F O column")
         print(pd.DataFrame(style_rows).to_string(index=False))
+    # ---- simple P&F rules vs the full system (each counted at entry only)
+    def entries(mask):
+        """First week a stock enters the group (not every week it stays in it)."""
+        m = mask.fillna(False).astype(bool)
+        prev = m.groupby(bt["Ticker"]).shift(1).fillna(False).astype(bool)
+        return m & ~prev
+    px_buy = bt["Px"].astype(str).str.endswith("/BUY")
+    rs_buy = bt["RS"].astype(str).str.endswith("/BUY")
+    fresh_rs = rs_buy & (bt["RS_BarsAgo"].fillna(999) <= 5)
+    on = bt["RiskOn"].astype(bool)
+    simple = [
+        ("Baseline (every stock, every week)", pd.Series(True, index=bt.index), False),
+        ("Price P&F on a buy signal", px_buy, True),
+        ("RS P&F (vs QQQ) on a buy signal", rs_buy, True),
+        ("Both P&F charts on buy signals", px_buy & rs_buy, True),
+        ("Both P&F buys + RISK-ON regime", px_buy & rs_buy & on, True),
+        ("Fresh RS buy (<=5 days) + price buy + RISK-ON", fresh_rs & px_buy & on, True),
+        ("FULL SYSTEM: BUY new entries", bt["NewEntry"], False),
+    ]
+    rows_s = []
+    for name, m, as_entry in simple:
+        mm = entries(m) if as_entry else m
+        r = _summary(bt, mm, name, cfg["bt_horizons"])
+        rows_s.append({k: r.get(k) for k in ("Group", "N", "Tickers", f"Excess{H}d_avg%", f"Excess{H}d_med%",
+                                             f"Return{H}d_avg%", f"Beat_QQQ_{H}d%", "StopTrade_avg%",
+                                             "StopTrade_win%", "Worst_trade%")})
+    print(f"\n Simple P&F rules vs the full system ({H}-day hold, {cfg['stop_atr_mult']:g}xATR stop; "
+          "P&F groups counted once when a stock enters the group):")
+    print(pd.DataFrame(rows_s).to_string(index=False))
+
     print("\nCAVEATS: current index members only (survivorship bias - compare against the "
           "baseline row, not zero);\n         overlapping weekly windows overstate sample size; "
           "no commissions/slippage.")
