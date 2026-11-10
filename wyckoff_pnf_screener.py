@@ -731,7 +731,7 @@ def check_stocks(symbols, cfg=CONFIG, universe=None, data=None, news=True):
             row = dict(Ticker=t, Tier="n/a", Failed=why)
         if not row.get("Tier"):
             row["Tier"] = "NO"
-        row["Verdict"] = plain_verdict(row, cfg)
+        row["Verdict"] = watch_needs(row, cfg) if row.get("Tier") == "WATCH" else plain_verdict(row, cfg)
         rows.append(row)
     res = pd.DataFrame(rows)
 

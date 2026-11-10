@@ -125,6 +125,7 @@
 <tr><td class="tk">Daily report</td><td><a href="index.html">rrobinson1996-sudo.github.io/stock-screener</a> (add to your phone's home screen)</td></tr>
 <tr><td class="tk">Cheat sheet</td><td><a href="cheatsheet.html">cheatsheet.html</a>: the one-page "what do I do"</td></tr>
 <tr><td class="tk">This manual</td><td><a href="manual.html">manual.html</a></td></tr>
+<tr><td class="tk">All Scores</td><td><a href="scores.html">scores.html</a>: every stock&#39;s score and reason, searchable; CSV at <a href="data/scores_latest.csv">data/scores_latest.csv</a></td></tr>
 <tr><td class="tk">BUY signal log</td><td><a href="data/signals.csv">data/signals.csv</a>: every BUY, logged automatically (appears after the first BUY)</td></tr>
 <tr><td class="tk">Past reports</td><td>"History" links at the bottom of the report</td></tr>
 <tr><td class="tk">Code and settings</td><td>github.com/rrobinson1996-sudo/stock-screener</td></tr>
@@ -153,7 +154,7 @@
 
 <h2 id="report">6. Reading the Report</h2>
 <div class="card"><ul>
-<li><b>Status cards:</b> Stock regime (QQQ) decides whether stock buys are allowed. Fund regime (SPY) is context. Buy candidates is the count. Stocks evaluated should be ~99/101; much lower means data trouble.</li>
+<li><b>Status cards:</b> Stock regime (QQQ) decides whether stock buys are allowed. Fund regime (SPY) is context. Buy candidates is the count. <b>Stocks tracked</b> is the total being screened: the NASDAQ-100 plus any watchlist tickers outside it. Tap the number to open All Scores. The small line under it is a <b>data health check</b> (how many NASDAQ-100 stocks downloaded cleanly): gray is normal (90%+), <span class="badge warn">amber</span> means partial data (75&ndash;90%, some candidates may be missing), <span class="badge bad">red</span> means a data problem (under 75%): re-run before acting on that day&#39;s lists.</li>
 <li><b>Yellow note boxes:</b> warnings about the run (roster fallback, partial download, earnings dates missing). Treat that day's results with caution.</li>
 <li><b>Buy candidates:</b> passed every gate with score &ge; 60 in a RISK-ON market. Includes the trade plan.</li>
 <li><b>Watch list:</b> stocks that are close to a BUY but not there yet. A stock lands here for one of two reasons:
@@ -165,6 +166,7 @@
 </ul>
 The <b>"What it needs to become a BUY"</b> column spells it out in plain English, such as "Ready except for the market: needs the market regime to turn RISK-ON" or "Needs 8 more score points (now 52), e.g. from a Wyckoff sign of strength (+15)". Watch-list stocks are not trades; they're the likeliest next candidates. Do nothing until one becomes a BUY.</li>
 <li><b>Funds (vs SPY):</b> which part of the market is leading. Context, not trades.</li>
+<li><b>All Scores</b> (link at the top): every stock tracked that day, with its score, tier, red-flag badge and a plain-English reason. Search a ticker or filter by BUY, WATCH, My watchlist or Not a buy. It&#39;s the place to check why a stock you expected isn&#39;t on the lists. A CSV of the same data is linked on that page.</li>
 <li><b>History:</b> past reports and the signal log.</li>
 </ul></div>
 
@@ -322,7 +324,8 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">No reply to a command</td><td>Did you type it in the command topic? Is NTFY_CMD_TOPIC set? Wait 30 min. Outside 6 AM&ndash;10 PM Central it waits until morning.</td></tr>
 <tr><td class="tk">"Workflow dispatch failed"</td><td>The command box was empty. Type a command and retry.</td></tr>
 <tr><td class="tk">Report page looks old</td><td>GitHub Pages takes 1&ndash;2 min after a run; refresh. A manual run during market hours uses yesterday's close (on purpose).</td></tr>
-<tr><td class="tk">"Stocks evaluated" far below 99</td><td>Partial download. Re-run later.</td></tr>
+<tr><td class="tk">Stocks tracked card is amber or red</td><td>Part of the price download failed (Yahoo throttling). Re-run from the Actions tab later; don&#39;t act on a red day&#39;s lists.</td></tr>
+<tr><td class="tk">A stock I expected isn&#39;t listed</td><td>Open All Scores and search it: the reason says exactly which rule it misses.</td></tr>
 <tr><td class="tk">Yellow note: roster fallback</td><td>Nasdaq.com blocked the download; only 30 backup tickers were screened. Usually fixes itself next run.</td></tr>
 <tr><td class="tk">Colab NameError</td><td>Run cell 1 again (Colab restarted).</td></tr>
 <tr><td class="tk">Scheduled runs stopped</td><td>GitHub pauses schedules after 60 days without repo activity. The daily report commits normally prevent this; if it happens, Actions &rarr; enable the workflow.</td></tr>

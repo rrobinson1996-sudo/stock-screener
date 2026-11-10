@@ -36,10 +36,11 @@ h2[id]{scroll-margin-top:12px}
 .funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
 .funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
 .funnel .step:nth-child(7){margin:0 12%}
-.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
+.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.bad-text{color:var(--bad);font-weight:600}.warn-text{color:var(--warn);font-weight:600}.warn-card{border-color:var(--warn);background:var(--warnbg)}.bad-card{border-color:var(--bad);background:var(--badbg)}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
 .test{border-top:1px solid var(--line);padding:8px 0}.test .row{margin-bottom:2px}.test .badge{margin-left:4px;font-size:11px}
 .funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
-font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px}
+font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px;white-space:nowrap}
+main>.row:first-child{flex-wrap:wrap;row-gap:2px}main>.row:first-child h1{margin-right:auto}
 </style></head><body><main>
 <div class="row"><h1>User Manual</h1><a class="small" href="index.html">Today's report →</a></div>
 <div class="muted small">Everything about the daily screener: what it does, how to read it, how to use it, and how to fix it.</div>
@@ -168,6 +169,7 @@ font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:c
 <tr><td class="tk">Daily report</td><td><a href="index.html">rrobinson1996-sudo.github.io/stock-screener</a> (add to your phone's home screen)</td></tr>
 <tr><td class="tk">Cheat sheet</td><td><a href="cheatsheet.html">cheatsheet.html</a>: the one-page "what do I do"</td></tr>
 <tr><td class="tk">This manual</td><td><a href="manual.html">manual.html</a></td></tr>
+<tr><td class="tk">All Scores</td><td><a href="scores.html">scores.html</a>: every stock&#39;s score and reason, searchable; CSV at <a href="data/scores_latest.csv">data/scores_latest.csv</a></td></tr>
 <tr><td class="tk">BUY signal log</td><td><a href="data/signals.csv">data/signals.csv</a>: every BUY, logged automatically (appears after the first BUY)</td></tr>
 <tr><td class="tk">Past reports</td><td>"History" links at the bottom of the report</td></tr>
 <tr><td class="tk">Code and settings</td><td>github.com/rrobinson1996-sudo/stock-screener</td></tr>
@@ -196,7 +198,7 @@ font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:c
 
 <h2 id="report">6. Reading the Report</h2>
 <div class="card"><ul>
-<li><b>Status cards:</b> Stock regime (QQQ) decides whether stock buys are allowed. Fund regime (SPY) is context. Buy candidates is the count. Stocks evaluated should be ~99/101; much lower means data trouble.</li>
+<li><b>Status cards:</b> Stock regime (QQQ) decides whether stock buys are allowed. Fund regime (SPY) is context. Buy candidates is the count. <b>Stocks tracked</b> is the total being screened: the NASDAQ-100 plus any watchlist tickers outside it. Tap the number to open All Scores. The small line under it is a <b>data health check</b> (how many NASDAQ-100 stocks downloaded cleanly): gray is normal (90%+), <span class="badge warn">amber</span> means partial data (75&ndash;90%, some candidates may be missing), <span class="badge bad">red</span> means a data problem (under 75%): re-run before acting on that day&#39;s lists.</li>
 <li><b>Yellow note boxes:</b> warnings about the run (roster fallback, partial download, earnings dates missing). Treat that day's results with caution.</li>
 <li><b>Buy candidates:</b> passed every gate with score &ge; 60 in a RISK-ON market. Includes the trade plan.</li>
 <li><b>Watch list:</b> stocks that are close to a BUY but not there yet. A stock lands here for one of two reasons:
@@ -208,6 +210,7 @@ font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:c
 </ul>
 The <b>"What it needs to become a BUY"</b> column spells it out in plain English, such as "Ready except for the market: needs the market regime to turn RISK-ON" or "Needs 8 more score points (now 52), e.g. from a Wyckoff sign of strength (+15)". Watch-list stocks are not trades; they're the likeliest next candidates. Do nothing until one becomes a BUY.</li>
 <li><b>Funds (vs SPY):</b> which part of the market is leading. Context, not trades.</li>
+<li><b>All Scores</b> (link at the top): every stock tracked that day, with its score, tier, red-flag badge and a plain-English reason. Search a ticker or filter by BUY, WATCH, My watchlist or Not a buy. It&#39;s the place to check why a stock you expected isn&#39;t on the lists. A CSV of the same data is linked on that page.</li>
 <li><b>History:</b> past reports and the signal log.</li>
 </ul></div>
 
@@ -365,7 +368,8 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">No reply to a command</td><td>Did you type it in the command topic? Is NTFY_CMD_TOPIC set? Wait 30 min. Outside 6 AM&ndash;10 PM Central it waits until morning.</td></tr>
 <tr><td class="tk">"Workflow dispatch failed"</td><td>The command box was empty. Type a command and retry.</td></tr>
 <tr><td class="tk">Report page looks old</td><td>GitHub Pages takes 1&ndash;2 min after a run; refresh. A manual run during market hours uses yesterday's close (on purpose).</td></tr>
-<tr><td class="tk">"Stocks evaluated" far below 99</td><td>Partial download. Re-run later.</td></tr>
+<tr><td class="tk">Stocks tracked card is amber or red</td><td>Part of the price download failed (Yahoo throttling). Re-run from the Actions tab later; don&#39;t act on a red day&#39;s lists.</td></tr>
+<tr><td class="tk">A stock I expected isn&#39;t listed</td><td>Open All Scores and search it: the reason says exactly which rule it misses.</td></tr>
 <tr><td class="tk">Yellow note: roster fallback</td><td>Nasdaq.com blocked the download; only 30 backup tickers were screened. Usually fixes itself next run.</td></tr>
 <tr><td class="tk">Colab NameError</td><td>Run cell 1 again (Colab restarted).</td></tr>
 <tr><td class="tk">Scheduled runs stopped</td><td>GitHub pauses schedules after 60 days without repo activity. The daily report commits normally prevent this; if it happens, Actions &rarr; enable the workflow.</td></tr>

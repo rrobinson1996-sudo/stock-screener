@@ -209,15 +209,27 @@ h2[id]{scroll-margin-top:12px}
 .funnel .step:nth-child(1){margin:0 0}.funnel .step:nth-child(2){margin:0 3%}.funnel .step:nth-child(3){margin:0 6%}
 .funnel .step:nth-child(4){margin:0 9%}.funnel .step:nth-child(5){margin:0 12%}.funnel .step:nth-child(6){margin:0 12%}
 .funnel .step:nth-child(7){margin:0 12%}
-.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
+.hero{background:var(--goodbg);border-radius:10px;padding:12px 14px;margin:4px 0 14px}.hero .label{color:var(--good);font-weight:700}.hero p{margin:6px 0 0}.hero .scroll{background:var(--card)}.growth td{vertical-align:top;line-height:1.35}.growth th,.growth td{padding:6px 5px;font-size:12.5px}.growth th{font-size:10px}.growth td.tk{white-space:nowrap}td.need{white-space:normal;min-width:210px;max-width:280px}.bad-text{color:var(--bad);font-weight:600}.warn-text{color:var(--warn);font-weight:600}.warn-card{border-color:var(--warn);background:var(--warnbg)}.bad-card{border-color:var(--bad);background:var(--badbg)}.edge{color:var(--good)}.allin{color:var(--warn)}.put{font-size:11px;color:var(--muted)}
 .test{border-top:1px solid var(--line);padding:8px 0}.test .row{margin-bottom:2px}.test .badge{margin-left:4px;font-size:11px}
 .funnel .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--goodbg);color:var(--good);
-font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px}
+font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}.links a{margin-left:12px;white-space:nowrap}
+main>.row:first-child{flex-wrap:wrap;row-gap:2px}main>.row:first-child h1{margin-right:auto}
 """
 
 
 def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html", mine=None):
     a = stocks.attrs if stocks is not None else {}
+    in_ndx = set(stocks["Ticker"]) if stocks is not None else set()
+    n_mine = 0 if mine is None else int((~mine["Ticker"].isin(in_ndx)).sum())
+    tracked = (a.get("universe") or 0) + n_mine
+    cov = (a.get("evaluated", 0) / a["universe"]) if a.get("universe") else 0
+    if cov >= 0.90:
+        health_cls, health_tag = "muted", ""
+    elif cov >= 0.75:
+        health_cls, health_tag = "warn-text", " · partial data"
+    else:
+        health_cls, health_tag = "bad-text", " · DATA PROBLEM: results incomplete"
+    card_cls = {"muted": "card", "warn-text": "card warn-card", "bad-text": "card bad-card"}[health_cls]
     fa = funds.attrs if funds is not None else {}
     asof = a.get("asof", "?")
     regime = "RISK-ON" if a.get("risk_on") else "CAUTION"
@@ -255,14 +267,15 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screener {esc(asof)}</title><style>{CSS}</style></head><body><main>
-<div class="row"><h1>Daily Screener</h1><span class="small links"><a href="{esc(cheat_href)}">Cheat sheet</a><a href="{esc(cheat_href.replace("cheatsheet", "manual"))}">Manual</a></span></div>
+<div class="row"><h1>Daily Screener</h1><span class="small links"><a href="{esc(cheat_href.replace("cheatsheet", "scores"))}">All scores</a><a href="{esc(cheat_href)}">Cheat sheet</a><a href="{esc(cheat_href.replace("cheatsheet", "manual"))}">Manual</a></span></div>
 <div class="muted small">Market data as of close {esc(asof)} · generated {esc(gen)}</div>
 {notes_html}
 <div class="status">
   <div class="card"><div class="label">Stock regime (QQQ)</div><div class="value">{badge(regime)}</div></div>
   <div class="card"><div class="label">Fund regime (SPY)</div><div class="value">{badge(fregime)}</div></div>
   <div class="card"><div class="label">Buy candidates</div><div class="value">{0 if buys is None else len(buys)}</div></div>
-  <div class="card"><div class="label">Stocks evaluated</div><div class="value">{esc(a.get("evaluated", "?"))} / {esc(a.get("universe", "?"))}</div></div>
+  <div class="{card_cls}"><div class="label">Stocks tracked</div><div class="value"><a href="{esc(cheat_href.replace("cheatsheet", "scores"))}">{esc(tracked)}</a></div>
+  <div class="small {health_cls}">{esc(a.get("evaluated", "?"))} of {esc(a.get("universe", "?"))} NASDAQ-100 evaluated{f" · {n_mine} watchlist" if n_mine else ""}{health_tag}</div></div>
 </div>
 
 <h2>Buy candidates</h2>
@@ -286,7 +299,7 @@ REVIEW = read the headlines. Never adds a stock the screener didn't flag.</p>
 {table(fund_top, fund_cols)}
 
 <h2>History</h2>
-<p class="small">{links} · <a href="data/signals.csv">BUY signal log (CSV)</a></p>
+<p class="small">{links} · <a href="scores.html">All scores</a> · <a href="data/signals.csv">BUY signal log (CSV)</a></p>
 
 <footer>Rules: buy only when the stock regime is RISK-ON, every gate passes and score ≥ 60.
 Stop = close − {S.CONFIG["stop_atr_mult"]}×ATR(20). Hold ~60 trading days. Research tool, not financial advice.</footer>
@@ -375,6 +388,75 @@ def build_manual(src="manual_body.html"):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screener manual</title><style>{CSS}</style></head><body><main>
 {body}</main></body></html>"""
+
+
+def all_scores(stocks, mine):
+    """Every stock tracked today with its score and a plain-English reason."""
+    rows = []
+    wl = set(mine["Ticker"]) if mine is not None else set()
+    if stocks is not None:
+        for _, r in stocks.iterrows():
+            tier = r.get("Tier") or "NO"
+            reason = r.get("Needs") if tier == "WATCH" else S.plain_verdict(dict(r, Tier=tier))
+            rows.append(dict(Ticker=r["Ticker"], Score=r.get("Score"), Tier=tier,
+                             Source="NASDAQ-100 + watchlist" if r["Ticker"] in wl else "NASDAQ-100",
+                             Reason=reason, RedFlags=r.get("News") if isinstance(r.get("News"), str) else "",
+                             Close=r.get("Close"), Failed=r.get("Failed") or ""))
+    if mine is not None:
+        have = {x["Ticker"] for x in rows}
+        for _, r in mine.iterrows():
+            if r["Ticker"] in have:
+                continue
+            rows.append(dict(Ticker=r["Ticker"], Score=r.get("Score"), Tier=r.get("Tier"), Source="Watchlist",
+                             Reason=S.watch_needs(r) if r.get("Tier") == "WATCH" else r.get("Verdict"), RedFlags=r.get("News") if isinstance(r.get("News"), str) else "",
+                             Close=r.get("Close"), Failed=r.get("Failed") or ""))
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    order = {"BUY": 0, "WATCH": 1, "NO": 2, "n/a": 3}
+    df["_o"] = df["Tier"].map(order).fillna(2)
+    return df.sort_values(["_o", "Score"], ascending=[True, False], na_position="last").drop(columns="_o")
+
+
+def build_scores_page(df, asof):
+    items = []
+    for _, r in df.iterrows():
+        sc = fmt(r["Score"], "int")
+        flags = badge(r["RedFlags"]) if r["RedFlags"] else ""
+        items.append(
+            f'<div class="srow" data-t="{esc(r["Ticker"]).lower()}" data-tier="{esc(r["Tier"])}" '
+            f'data-src="{"w" if "watchlist" in str(r["Source"]).lower() else "n"}">'
+            f'<div class="row"><span><span class="tk big">{esc(r["Ticker"])}</span> '
+            f'<span class="muted small">{esc(r["Source"])}</span></span>'
+            f'<span>{badge(r["Tier"])} {flags} <b class="sc">{esc(sc)}</b></span></div>'
+            f'<div class="small">{esc(r["Reason"])}</div></div>')
+    counts = df["Tier"].value_counts().to_dict()
+    return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>All scores {esc(asof)}</title><style>{CSS}
+.srow{{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}}
+.sc{{font-size:16px;margin-left:6px}}.filters{{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}}
+.filters button{{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:5px 12px;font-size:13px}}
+.filters button.on{{background:var(--fg);color:var(--bg)}}
+#q{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px}}
+</style></head><body><main>
+<div class="row"><h1>All Scores</h1><span class="small links"><a href="index.html">Report</a><a href="data/scores_latest.csv">CSV</a></span></div>
+<div class="muted small">Every stock tracked on {esc(asof)}: {len(df)} total · {counts.get("BUY", 0)} BUY · {counts.get("WATCH", 0)} WATCH. Sorted BUY, then WATCH, then the rest, highest score first.</div>
+<input id="q" placeholder="Find a ticker, e.g. MANH" oninput="f()" style="margin-top:12px">
+<div class="filters"><button class="on" data-f="all">All</button><button data-f="BUY">BUY</button>
+<button data-f="WATCH">WATCH</button><button data-f="w">My watchlist</button><button data-f="NO">Not a buy</button></div>
+<div id="list">{"".join(items)}</div>
+<footer>Score cutoff for BUY is 60, with every gate passed and the regime RISK-ON. Research tool, not financial advice.</footer>
+</main><script>
+var mode='all';
+function f(){{var q=document.getElementById('q').value.trim().toLowerCase();
+document.querySelectorAll('.srow').forEach(function(e){{
+var ok=(!q||e.dataset.t.indexOf(q)===0)&&(mode==='all'||(mode==='w'?e.dataset.src==='w':e.dataset.tier===mode));
+e.style.display=ok?'':'none';}});}}
+document.querySelectorAll('.filters button').forEach(function(b){{b.onclick=function(){{
+document.querySelectorAll('.filters button').forEach(function(x){{x.classList.remove('on')}});
+b.classList.add('on');mode=b.dataset.f;f();}};}});
+</script></body></html>"""
 
 
 def build_cheatsheet():
@@ -485,8 +567,11 @@ def main():
     if cfg["benchmark"] not in data or cov < 0.5:
         raise RuntimeError(f"Price download failed (coverage {cov:.0%}). Yahoo may be blocking - "
                            "re-run later from the Actions tab.")
-    if cov < 0.9:
-        notes.append(f"Only {cov:.0%} of tickers downloaded - results may be incomplete.")
+    if cov < 0.75:
+        notes.append(f"DATA PROBLEM: only {cov:.0%} of NASDAQ-100 stocks downloaded. Today's lists are "
+                     "incomplete - re-run later from the Actions tab before acting on them.")
+    elif cov < 0.9:
+        notes.append(f"Partial data: {cov:.0%} of NASDAQ-100 stocks downloaded. Some candidates may be missing.")
 
     earnings = S.fetch_earnings(tickers)
     if sum(v is not None for v in earnings.values()) == 0:
@@ -517,13 +602,19 @@ def main():
     names = sorted({p.stem for p in past} | {asof}, reverse=True)[:15]
     page = build_html(stocks, funds, notes, [(n, f"reports/{n}.html") for n in names], mine=mine)
     (DOCS / "index.html").write_text(page, encoding="utf-8")
+    scores = all_scores(stocks, mine)
+    if not scores.empty:
+        DATA.mkdir(parents=True, exist_ok=True)
+        scores.assign(Date=asof).to_csv(DATA / "scores_latest.csv", index=False)
+        (DOCS / "scores.html").write_text(build_scores_page(scores, asof), encoding="utf-8")
     (DOCS / "cheatsheet.html").write_text(build_cheatsheet(), encoding="utf-8")
     if Path("manual_body.html").exists():
         (DOCS / "manual.html").write_text(build_manual(), encoding="utf-8")
     # dated copies link back up one level
     dated = (page.replace('href="reports/', 'href="').replace('href="data/', 'href="../data/')
              .replace('href="cheatsheet.html"', 'href="../cheatsheet.html"')
-             .replace('href="manual.html"', 'href="../manual.html"'))
+             .replace('href="manual.html"', 'href="../manual.html"')
+             .replace('href="scores.html"', 'href="../scores.html"'))
     (REPORTS / f"{asof}.html").write_text(dated, encoding="utf-8")
     print(f"Report written: docs/index.html and docs/reports/{asof}.html")
 
