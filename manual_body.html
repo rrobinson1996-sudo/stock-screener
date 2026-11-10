@@ -3,28 +3,28 @@
 
 <div class="card" style="margin-top:14px"><div class="label">Contents</div>
 <ol class="small toc">
-<li><a href="#strategy">The strategy</a></li>
-<li><a href="#plan">The plan in one minute</a></li>
-<li><a href="#where">Where everything lives</a></li>
-<li><a href="#routine">Your routine</a></li>
-<li><a href="#report">Reading the report</a></li>
-<li><a href="#glossary">Column glossary</a></li>
-<li><a href="#rules">The strategy rules</a></li>
-<li><a href="#flags">Red-flag check</a></li>
-<li><a href="#watchlist">Watchlist and phone commands</a></li>
+<li><a href="#strategy">The Strategy</a></li>
+<li><a href="#plan">The Plan in One Minute</a></li>
+<li><a href="#where">Where Everything Lives</a></li>
+<li><a href="#routine">Your Routine</a></li>
+<li><a href="#report">Reading the Report</a></li>
+<li><a href="#glossary">Column Glossary</a></li>
+<li><a href="#rules">The Strategy Rules</a></li>
+<li><a href="#flags">Red-Flag Check</a></li>
+<li><a href="#watchlist">Watchlist and Phone Commands</a></li>
 <li><a href="#colab">Using Colab</a></li>
-<li><a href="#settings">Changing settings</a></li>
-<li><a href="#evidence">What the backtest showed</a></li>
-<li><a href="#decisions">Decisions we made (and why)</a></li>
+<li><a href="#settings">Changing Settings</a></li>
+<li><a href="#evidence">What the Backtest Showed</a></li>
+<li><a href="#decisions">Decisions We Made (and Why)</a></li>
 <li><a href="#trouble">Troubleshooting</a></li>
-<li><a href="#setup">Setup reference</a></li>
+<li><a href="#setup">Setup Reference</a></li>
 </ol></div>
 
-<h2 id="strategy">1. The strategy</h2>
+<h2 id="strategy">1. The Strategy</h2>
 <div class="card">
 <p><b>The Goal:</b> find the handful of NASDAQ-100 stocks that are genuinely leading the market, buy them only when the market backdrop supports them, cut the ones that fail, and let the ones that work run for about three months. All of this stays a small add-on to a core of index funds that do the heavy lifting.</p>
 
-<p><b>The idea behind it.</b> Strong stocks tend to stay strong for a while. Stocks that have beaten the market over the past year, and are still beating it, have historically kept outperforming over the next several months. This is momentum, one of the most consistently documented patterns in market research. It happens partly because big investors build positions over weeks rather than days, and partly because good news gets priced in gradually. The system tries to catch that persistence early and safely:</p>
+<p><b>The Idea Behind It.</b> Strong stocks tend to stay strong for a while. Stocks that have beaten the market over the past year, and are still beating it, have historically kept outperforming over the next several months. This is momentum, one of the most consistently documented patterns in market research. It happens partly because big investors build positions over weeks rather than days, and partly because good news gets priced in gradually. The system tries to catch that persistence early and safely:</p>
 <ul class="small">
 <li><b>Relative strength</b> (each stock vs QQQ, charted with Point &amp; Figure) asks: is it beating the market, not just rising with it?</li>
 <li><b>Momentum and trend</b> ask: has it been strong for a year, and is it still in a healthy uptrend?</li>
@@ -35,27 +35,27 @@
 
 <p><b>The Process: A Funnel.</b></p>
 <div class="funnel">
-<div class="step"><span class="n">1</span><div><b>Market regime</b><br><span class="small muted">QQQ in an uptrend? If not, stop here: no new stock buys.</span></div></div>
+<div class="step"><span class="n">1</span><div><b>Market Regime</b><br><span class="small muted">QQQ in an uptrend? If not, stop here: no new stock buys.</span></div></div>
 <div class="step"><span class="n">2</span><div><b>Universe: about 100 stocks</b><br><span class="small muted">The NASDAQ-100, plus anything on your watchlist.</span></div></div>
 <div class="step"><span class="n">3</span><div><b>Gates: the pass/fail filters</b><br><span class="small muted">Uptrend, top-half momentum, outperforming QQQ, not overextended, no earnings within 7 days, not too volatile, liquid. Usually 80&ndash;95% of stocks fail here.</span></div></div>
-<div class="step"><span class="n">4</span><div><b>Score of 60 or more</b><br><span class="small muted">Ranks the survivors on momentum, RS quality, price breakout, Wyckoff and closeness to the high.</span></div></div>
+<div class="step"><span class="n">4</span><div><b>Score of 60 or More</b><br><span class="small muted">Ranks the survivors on momentum, RS quality, price breakout, Wyckoff and closeness to the high.</span></div></div>
 <div class="step"><span class="n">5</span><div><b>Red-flag veto</b><br><span class="small muted">Skip anything with estimate cuts or deal-driven news; read the rest.</span></div></div>
 <div class="step"><span class="n">6</span><div><b>Trade plan</b><br><span class="small muted">Buy at the next open, stop at 5&times;ATR below, risk about 1% of the account, hold about 60 trading days.</span></div></div>
 <div class="step"><span class="n">7</span><div><b>Log and review</b><br><span class="small muted">Every signal is logged. Judge the system once, after 6&ndash;12 months, against QQQ.</span></div></div>
 </div>
 
-<p style="margin-top:14px"><b>Every test, and why it&#39;s there:</b></p>
+<p style="margin-top:14px"><b>Every Test, and Why It&#39;s There:</b></p>
 <p class="small muted">Tags show how much evidence stands behind each one: <span class="badge good">Backtested</span> tested in this system&#39;s 5-year backtest · <span class="badge warn">Research-backed</span> supported by published research or long practice · <span class="badge muted">Judgment</span> a sensible rule that hasn&#39;t been tested on its own. Gates were tested together as a set, not one by one.</p>
-<div class="label" style="margin:14px 0 6px">Market</div><div class="test"><div class="row"><b>Market regime</b><span><span class="badge good">Backtested</span> <span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> QQQ above its 200-day average, and its 50-day above its 200-day.</div><div class="small muted"><b>Why:</b> Breakouts fail far more often in falling markets. In the backtest, setups taken in CAUTION markets returned about 0% and trailed QQQ by ~4%: the strongest finding of all.</div></div>
-<div class="label" style="margin:14px 0 6px">Trend and momentum</div><div class="test"><div class="row"><b>Trend</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Close above the 50-day, 50-day above a rising 200-day.</div><div class="small muted"><b>Why:</b> Only buy stocks already in an established uptrend; never try to catch a falling one.</div></div><div class="test"><div class="row"><b>12-1 month momentum</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> The return from 12 months ago to 1 month ago, ranked within the NASDAQ-100; must be top half. Worth 30 score points.</div><div class="small muted"><b>Why:</b> Momentum is one of the most consistently documented return patterns in finance (Jegadeesh &amp; Titman, 1993, and decades since). Skipping the latest month avoids short-term reversals.</div></div><div class="test"><div class="row"><b>Near the 52-week high</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Within 25% of the high to pass (part of the trend gate); 10 score points if within 10% of the high, 5 if within 15%.</div><div class="small muted"><b>Why:</b> Stocks near their highs have historically kept outperforming, partly because investors are slow to bid above old highs (the "52-week-high effect").</div></div>
-<div class="label" style="margin:14px 0 6px">Relative strength and Point &amp; Figure</div><div class="test"><div class="row"><b>Relative strength vs QQQ</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> The stock's price divided by QQQ's, every day.</div><div class="small muted"><b>Why:</b> Separates true leaders from stocks simply riding a rising market. A stock can rise and still be losing to the index.</div></div><div class="test"><div class="row"><b>Point &amp; Figure charting</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Plots only meaningful moves as columns of X's (rising) and O's (falling), ignoring time and small wiggles. A BUY signal is a column that rises above the previous high column (a double-top breakout).</div><div class="small muted"><b>Why:</b> It filters out noise and gives objective, rule-based signals with no interpretation needed. It's the method behind the Dorsey Wright relative-strength system.</div></div><div class="test"><div class="row"><b>RS P&amp;F buy signal (gate)</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> The relative-strength line must be on a P&amp;F BUY. Score points for a recent signal (within 20 days) and a rising column.</div><div class="small muted"><b>Why:</b> The core leadership test: the stock has broken out <i>relative to the market</i>, not just in price.</div></div><div class="test"><div class="row"><b>Price P&amp;F buy (score)</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> The stock's own price chart is on a P&amp;F BUY. Worth 10 points.</div><div class="small muted"><b>Why:</b> Confirms that the absolute price is breaking out too, not only the ratio.</div></div><div class="test"><div class="row"><b>Volatility-scaled boxes</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> Each stock's P&amp;F box size is set from its own volatility (ATR), not a fixed 1%.</div><div class="small muted"><b>Why:</b> Makes a signal mean the same thing on a calm stock and a wild one. Tested against fixed boxes: a tie, kept for consistency.</div></div>
-<div class="label" style="margin:14px 0 6px">Entry timing and risk filters</div><div class="test"><div class="row"><b>Not extended</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> No more than 5 ATRs above the 50-day average.</div><div class="small muted"><b>Why:</b> Avoids chasing a stock after a vertical run, when a pullback is likely and the stop would be far away.</div></div><div class="test"><div class="row"><b>No earnings within 7 days</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Blocks a buy right before a scheduled report.</div><div class="small muted"><b>Why:</b> An earnings reaction is close to a coin flip and can gap through any stop.</div></div><div class="test"><div class="row"><b>Volatility limit</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Average daily range (ATR) no more than 6% of price.</div><div class="small muted"><b>Why:</b> Wildly volatile stocks need stops so wide that positions become tiny and losses deep. Added after MRNA scored 100 on a news spike with a 22% stop.</div></div><div class="test"><div class="row"><b>Liquidity</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> At least $25M traded per day on average.</div><div class="small muted"><b>Why:</b> Ensures you can get in and out at fair prices. Every NASDAQ-100 stock passes; it matters for watchlist names.</div></div>
-<div class="label" style="margin:14px 0 6px">Wyckoff volume patterns (score only)</div><div class="test"><div class="row"><b>Selling Climax &rarr; Secondary Test</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> A high-volume down day (2&times; normal), a rally of 5%+, then a retest of the low on much lighter volume. Worth 10 points.</div><div class="small muted"><b>Why:</b> Classic sign that heavy selling is exhausted and buyers are absorbing supply.</div></div><div class="test"><div class="row"><b>Sign of Strength</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> After the test: a wide-range up day closing near its high on 1.5&times; normal volume. 15 points, plus 5 if it closes above the earlier rally high.</div><div class="small muted"><b>Why:</b> Shows demand taking control. Earnings reactions and 4%+ gap-ups never count, because news moves aren't accumulation.</div></div><div class="test"><div class="row"><b>What the backtest said</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> On its own, a Wyckoff Sign of Strength did about as well as a random stock, and scores of 75+ (mostly from Wyckoff points) did no better than 60&ndash;75.</div><div class="small muted"><b>Why:</b> So Wyckoff refines the ranking but carries little of the edge. It's kept with its original weight because a reweighting fitted to the data did worse out of sample.</div></div>
-<div class="label" style="margin:14px 0 6px">The threshold</div><div class="test"><div class="row"><b>Score of 60 or more</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> The 0&ndash;100 score must reach 60, on top of passing every gate.</div><div class="small muted"><b>Why:</b> Stocks that passed the gates but scored under 60 did no better than the baseline; 60+ carried the edge.</div></div>
-<div class="label" style="margin:14px 0 6px">Red-flag check (veto only)</div><div class="test"><div class="row"><b>Earnings estimate revisions</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Analysts raising vs cutting this year's EPS forecasts over 30 days. More cuts = VETO?.</div><div class="small muted"><b>Why:</b> Estimate revisions are a well-documented signal (the basis of the Zacks Rank). Rising prices with falling estimates is a warning.</div></div><div class="test"><div class="row"><b>Analyst downgrades</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Upgrades vs downgrades over 30 days. Any downgrade = REVIEW.</div><div class="small muted"><b>Why:</b> Prompts a closer look; not decisive on its own.</div></div><div class="test"><div class="row"><b>Negative and deal headlines</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Recent headlines scanned for words like lawsuit, probe, guidance cut; takeover or merger news = VETO?.</div><div class="small muted"><b>Why:</b> Catches what price data can't see. A deal-driven price jump isn't the trend the system is buying.</div></div>
-<div class="label" style="margin:14px 0 6px">Trade management</div><div class="test"><div class="row"><b>Stop at 5&times;ATR</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> Exit if the price falls 5 average daily ranges below entry.</div><div class="small muted"><b>Why:</b> Tested at 2.5, 3.5 and 5&times; and no stop: tight stops were hit on normal pullbacks. 5&times; earned more with a worst trade near &minus;30%.</div></div><div class="test"><div class="row"><b>1% risk sizing</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Size so that hitting the stop loses about 1% of the account.</div><div class="small muted"><b>Why:</b> A standard risk-control rule: no single trade can do serious damage, so a losing streak is survivable.</div></div><div class="test"><div class="row"><b>60-trading-day hold</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> Hold about three months unless stopped out.</div><div class="small muted"><b>Why:</b> The horizon the backtest measured, and roughly how long momentum tends to persist.</div></div><div class="test"><div class="row"><b>Measured-move target</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Height of the breakout column projected from the breakout level.</div><div class="small muted"><b>Why:</b> A rough reward-vs-risk check, display only. The classic 3&times; count gave unrealistic +100&ndash;200% targets.</div></div>
+<div class="label" style="margin:14px 0 6px">Market</div><div class="test"><div class="row"><b>Market Regime</b><span><span class="badge good">Backtested</span> <span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> QQQ above its 200-day average, and its 50-day above its 200-day.</div><div class="small muted"><b>Why:</b> Breakouts fail far more often in falling markets. In the backtest, setups taken in CAUTION markets returned about 0% and trailed QQQ by ~4%: the strongest finding of all.</div></div>
+<div class="label" style="margin:14px 0 6px">Trend and Momentum</div><div class="test"><div class="row"><b>Trend</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Close above the 50-day, 50-day above a rising 200-day.</div><div class="small muted"><b>Why:</b> Only buy stocks already in an established uptrend; never try to catch a falling one.</div></div><div class="test"><div class="row"><b>12-1 Month Momentum</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> The return from 12 months ago to 1 month ago, ranked within the NASDAQ-100; must be top half. Worth 30 score points.</div><div class="small muted"><b>Why:</b> Momentum is one of the most consistently documented return patterns in finance (Jegadeesh &amp; Titman, 1993, and decades since). Skipping the latest month avoids short-term reversals.</div></div><div class="test"><div class="row"><b>Near the 52-Week High</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Within 25% of the high to pass (part of the trend gate); 10 score points if within 10% of the high, 5 if within 15%.</div><div class="small muted"><b>Why:</b> Stocks near their highs have historically kept outperforming, partly because investors are slow to bid above old highs (the "52-week-high effect").</div></div>
+<div class="label" style="margin:14px 0 6px">Relative Strength and Point &amp; Figure</div><div class="test"><div class="row"><b>Relative Strength vs QQQ</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> The stock's price divided by QQQ's, every day.</div><div class="small muted"><b>Why:</b> Separates true leaders from stocks simply riding a rising market. A stock can rise and still be losing to the index.</div></div><div class="test"><div class="row"><b>Point &amp; Figure Charting</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Plots only meaningful moves as columns of X's (rising) and O's (falling), ignoring time and small wiggles. A BUY signal is a column that rises above the previous high column (a double-top breakout).</div><div class="small muted"><b>Why:</b> It filters out noise and gives objective, rule-based signals with no interpretation needed. It's the method behind the Dorsey Wright relative-strength system.</div></div><div class="test"><div class="row"><b>RS P&amp;F Buy Signal (Gate)</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> The relative-strength line must be on a P&amp;F BUY. Score points for a recent signal (within 20 days) and a rising column.</div><div class="small muted"><b>Why:</b> The core leadership test: the stock has broken out <i>relative to the market</i>, not just in price.</div></div><div class="test"><div class="row"><b>Price P&amp;F Buy (Score)</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> The stock's own price chart is on a P&amp;F BUY. Worth 10 points.</div><div class="small muted"><b>Why:</b> Confirms that the absolute price is breaking out too, not only the ratio.</div></div><div class="test"><div class="row"><b>Volatility-Scaled Boxes</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> Each stock's P&amp;F box size is set from its own volatility (ATR), not a fixed 1%.</div><div class="small muted"><b>Why:</b> Makes a signal mean the same thing on a calm stock and a wild one. Tested against fixed boxes: a tie, kept for consistency.</div></div>
+<div class="label" style="margin:14px 0 6px">Entry Timing and Risk Filters</div><div class="test"><div class="row"><b>Not Extended</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> No more than 5 ATRs above the 50-day average.</div><div class="small muted"><b>Why:</b> Avoids chasing a stock after a vertical run, when a pullback is likely and the stop would be far away.</div></div><div class="test"><div class="row"><b>No Earnings Within 7 Days</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Blocks a buy right before a scheduled report.</div><div class="small muted"><b>Why:</b> An earnings reaction is close to a coin flip and can gap through any stop.</div></div><div class="test"><div class="row"><b>Volatility Limit</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Average daily range (ATR) no more than 6% of price.</div><div class="small muted"><b>Why:</b> Wildly volatile stocks need stops so wide that positions become tiny and losses deep. Added after MRNA scored 100 on a news spike with a 22% stop.</div></div><div class="test"><div class="row"><b>Liquidity</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> At least $25M traded per day on average.</div><div class="small muted"><b>Why:</b> Ensures you can get in and out at fair prices. Every NASDAQ-100 stock passes; it matters for watchlist names.</div></div>
+<div class="label" style="margin:14px 0 6px">Wyckoff Volume Patterns (Score Only)</div><div class="test"><div class="row"><b>Selling Climax &rarr; Secondary Test</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> A high-volume down day (2&times; normal), a rally of 5%+, then a retest of the low on much lighter volume. Worth 10 points.</div><div class="small muted"><b>Why:</b> Classic sign that heavy selling is exhausted and buyers are absorbing supply.</div></div><div class="test"><div class="row"><b>Sign of Strength</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> After the test: a wide-range up day closing near its high on 1.5&times; normal volume. 15 points, plus 5 if it closes above the earlier rally high.</div><div class="small muted"><b>Why:</b> Shows demand taking control. Earnings reactions and 4%+ gap-ups never count, because news moves aren't accumulation.</div></div><div class="test"><div class="row"><b>What the Backtest Said</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> On its own, a Wyckoff Sign of Strength did about as well as a random stock, and scores of 75+ (mostly from Wyckoff points) did no better than 60&ndash;75.</div><div class="small muted"><b>Why:</b> So Wyckoff refines the ranking but carries little of the edge. It's kept with its original weight because a reweighting fitted to the data did worse out of sample.</div></div>
+<div class="label" style="margin:14px 0 6px">The Threshold</div><div class="test"><div class="row"><b>Score of 60 or More</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> The 0&ndash;100 score must reach 60, on top of passing every gate.</div><div class="small muted"><b>Why:</b> Stocks that passed the gates but scored under 60 did no better than the baseline; 60+ carried the edge.</div></div>
+<div class="label" style="margin:14px 0 6px">Red-Flag Check (Veto Only)</div><div class="test"><div class="row"><b>Earnings Estimate Revisions</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Analysts raising vs cutting this year's EPS forecasts over 30 days. More cuts = VETO?.</div><div class="small muted"><b>Why:</b> Estimate revisions are a well-documented signal (the basis of the Zacks Rank). Rising prices with falling estimates is a warning.</div></div><div class="test"><div class="row"><b>Analyst Downgrades</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Upgrades vs downgrades over 30 days. Any downgrade = REVIEW.</div><div class="small muted"><b>Why:</b> Prompts a closer look; not decisive on its own.</div></div><div class="test"><div class="row"><b>Negative and Deal Headlines</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Recent headlines scanned for words like lawsuit, probe, guidance cut; takeover or merger news = VETO?.</div><div class="small muted"><b>Why:</b> Catches what price data can't see. A deal-driven price jump isn't the trend the system is buying.</div></div>
+<div class="label" style="margin:14px 0 6px">Trade Management</div><div class="test"><div class="row"><b>Stop at 5&times;ATR</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> Exit if the price falls 5 average daily ranges below entry.</div><div class="small muted"><b>Why:</b> Tested at 2.5, 3.5 and 5&times; and no stop: tight stops were hit on normal pullbacks. 5&times; earned more with a worst trade near &minus;30%.</div></div><div class="test"><div class="row"><b>1% Risk Sizing</b><span><span class="badge warn">Research-backed</span></span></div><div class="small"><b>Checks:</b> Size so that hitting the stop loses about 1% of the account.</div><div class="small muted"><b>Why:</b> A standard risk-control rule: no single trade can do serious damage, so a losing streak is survivable.</div></div><div class="test"><div class="row"><b>60-Trading-Day Hold</b><span><span class="badge good">Backtested</span></span></div><div class="small"><b>Checks:</b> Hold about three months unless stopped out.</div><div class="small muted"><b>Why:</b> The horizon the backtest measured, and roughly how long momentum tends to persist.</div></div><div class="test"><div class="row"><b>Measured-Move Target</b><span><span class="badge muted">Judgment</span></span></div><div class="small"><b>Checks:</b> Height of the breakout column projected from the breakout level.</div><div class="small muted"><b>Why:</b> A rough reward-vs-risk check, display only. The classic 3&times; count gave unrealistic +100&ndash;200% targets.</div></div>
 
-<p style="margin-top:12px"><b>The principles that hold it together:</b></p>
+<p style="margin-top:12px"><b>The Principles That Hold It Together:</b></p>
 <ul class="small">
 <li><b>Rules over opinions.</b> The same tested rules every day, applied automatically. Your judgment goes into following them, not into overriding them.</li>
 <li><b>Risk before reward.</b> The stop and the position size are set before you buy. Losses stay small; a few large winners carry the results.</li>
@@ -65,10 +65,10 @@
 <li><b>The core comes first.</b> Monthly index-fund contributions are the main engine. The screener is a disciplined way to try for a few extra points on a small slice.</li>
 </ul>
 
-<p><b>What it is not:</b> a forecast, a day-trading system, or a way to grow a small account fast. It doesn't know what the market will do tomorrow. It only tilts the odds toward stocks that are already behaving like leaders, and keeps you out when conditions are poor.</p>
+<p><b>What It Is Not:</b> a forecast, a day-trading system, or a way to grow a small account fast. It doesn't know what the market will do tomorrow. It only tilts the odds toward stocks that are already behaving like leaders, and keeps you out when conditions are poor.</p>
 </div>
 
-<h2 id="plan">2. The plan in one minute</h2>
+<h2 id="plan">2. The Plan in One Minute</h2>
 <div class="card"><ul>
 <li><b>Core (most of your money):</b> automatic monthly buys of a broad index fund (VOO/VTI and/or QQQM). No screening, no timing. Keep buying through CAUTION markets.</li>
 <li><b>Satellite (a small slice):</b> individual NASDAQ-100 stocks the screener flags as BUY, only when the stock regime is RISK-ON, every gate passes, the score is 60+, and the red-flag check doesn't veto it.</li>
@@ -77,7 +77,7 @@
 </ul>
 <p class="small muted">Honest expectation: the edge is real but modest (a few points per trade over QQQ in backtests). Contributions matter far more than stock picking at small account sizes.</p></div>
 
-<h2 id="where">3. Where everything lives</h2>
+<h2 id="where">3. Where Everything Lives</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>What</th><th>Where</th></tr></thead><tbody>
 <tr><td class="tk">Daily report</td><td><a href="index.html">rrobinson1996-sudo.github.io/stock-screener</a> (add to your phone's home screen)</td></tr>
 <tr><td class="tk">Cheat sheet</td><td><a href="cheatsheet.html">cheatsheet.html</a>: the one-page "what do I do"</td></tr>
@@ -90,16 +90,16 @@
 <tr><td class="tk">Colab</td><td>For backtests and ad-hoc checks; loads the code from GitHub</td></tr>
 </tbody></table></div>
 
-<h2 id="routine">4. Your routine</h2>
+<h2 id="routine">4. Your Routine</h2>
 <div class="card">
-<p><b>What it does: Every weekday, automatically</b> (about 4:40 PM Eastern; GitHub sometimes starts 10&ndash;30 min late):</p>
+<p><b>What It Does: Every Weekday, Automatically</b> (about 4:40 PM Eastern; GitHub sometimes starts 10&ndash;30 min late):</p>
 <ol class="small">
 <li>Downloads the NASDAQ-100 roster from Nasdaq.com and three years of prices from Yahoo (retries if throttled).</li>
 <li>Runs the stock screen vs QQQ, the red-flag check on BUY + top watch names, your watchlist, and the fund screen vs SPY.</li>
 <li>Publishes the report, saves a dated copy, logs any BUY to signals.csv.</li>
 <li>Sends a notification with a <b>"Do:"</b> line and <b>Open report / Cheat sheet</b> buttons.</li>
 </ol>
-<p><b>What you do:</b></p>
+<p><b>What You Do:</b></p>
 <ol class="small">
 <li>Read the "Do:" line. On most days it says no new buys: you're done.</li>
 <li>On a BUY day, open the report. For each candidate check the red-flag badge: CLEAN = OK, REVIEW = read the headlines, VETO? = skip.</li>
@@ -108,7 +108,7 @@
 <li>Once, after 6&ndash;12 months: compare your logged trades with QQQ over the same periods.</li>
 </ol></div>
 
-<h2 id="report">5. Reading the report</h2>
+<h2 id="report">5. Reading the Report</h2>
 <div class="card"><ul>
 <li><b>Status cards:</b> Stock regime (QQQ) decides whether stock buys are allowed. Fund regime (SPY) is context. Buy candidates is the count. Stocks evaluated should be ~99/101; much lower means data trouble.</li>
 <li><b>Yellow note boxes:</b> warnings about the run (roster fallback, partial download, earnings dates missing). Treat that day's results with caution.</li>
@@ -120,7 +120,7 @@
 <li><b>History:</b> past reports and the signal log.</li>
 </ul></div>
 
-<h2 id="glossary">6. Column glossary</h2>
+<h2 id="glossary">6. Column Glossary</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Column</th><th>Meaning</th></tr></thead><tbody>
 <tr><td class="tk">Score</td><td>0&ndash;100 quality rank (section 7). 60+ needed for BUY. 60&ndash;75 has done as well as 75+.</td></tr>
 <tr><td class="tk">Tier</td><td>BUY, WATCH, or NO (watchlist only)</td></tr>
@@ -139,9 +139,9 @@
 <tr><td class="tk">PxBox / RSBox</td><td>P&amp;F box sizes used (CSV only): set per stock from its volatility</td></tr>
 </tbody></table></div>
 
-<h2 id="rules">7. The strategy rules</h2>
+<h2 id="rules">7. The Strategy Rules</h2>
 <div class="card">
-<p><b>Gates (all must pass):</b></p>
+<p><b>Gates (All Must Pass):</b></p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Gate</th><th>Rule</th></tr></thead><tbody>
 <tr><td class="tk">Regime</td><td>QQQ above its 200-day average and its 50-day above its 200-day</td></tr>
 <tr><td class="tk">Trend</td><td>Close &gt; 50-day &gt; 200-day, 200-day rising, within 25% of the 52-week high</td></tr>
@@ -154,11 +154,11 @@
 </tbody></table></div>
 <p style="margin-top:10px"><b>Score (0&ndash;100):</b> momentum rank 30 · RS P&amp;F quality 20 (buy signal 10, fresh within 20 days 5, rising column 5) · price P&amp;F buy 10 · Wyckoff 30 (ST 10, SOS 15, SOS above rally high 5) · near the 52-week high 10.</p>
 <p><b>BUY</b> = all gates + score &ge; 60. <b>WATCH</b> = gates pass with score 40&ndash;59, or score 60+ with exactly one gate failing.</p>
-<p><b>Trade plan:</b> enter at the next open · stop at close &minus; 5&times;ATR(20), never moved down · hold ~60 trading days · size so a stop-out loses about 1% of the account: shares = (account &times; 1%) &divide; (entry &minus; stop).</p>
-<p><b>Selling puts instead:</b> only with cash for 100 shares at the strike. A strike near the Stop column fits the system.</p>
+<p><b>Trade Plan:</b> enter at the next open · stop at close &minus; 5&times;ATR(20), never moved down · hold ~60 trading days · size so a stop-out loses about 1% of the account: shares = (account &times; 1%) &divide; (entry &minus; stop).</p>
+<p><b>Selling Puts Instead:</b> only with cash for 100 shares at the strike. A strike near the Stop column fits the system.</p>
 <p class="small muted">P&amp;F charts use closing prices, 3-box reversal, and box sizes scaled to each stock's volatility (1&times;ATR for price, 1.5&times; the RS line's average daily move for RS), rounded to 0.25% and kept between 0.5% and 6%.</p></div>
 
-<h2 id="flags">8. Red-flag check</h2>
+<h2 id="flags">8. Red-Flag Check</h2>
 <div class="card">
 <p>Looks for reasons <b>not</b> to buy. It can veto or flag a stock, never add one.</p>
 <ul>
@@ -174,7 +174,7 @@
 </tbody></table></div>
 <p class="small muted" style="margin-top:8px">Limits: only Yahoo's 10&ndash;20 most recent headlines per stock; Yahoo's feed includes related market stories, so keyword hits produce false alarms. That's why headline hits get REVIEW, not VETO.</p></div>
 
-<h2 id="watchlist">9. Watchlist and phone commands</h2>
+<h2 id="watchlist">9. Watchlist and Phone Commands</h2>
 <div class="card">
 <p><b>Watchlist:</b> the file <b>watchlist.txt</b> in the repo, one ticker per line, any US stock. It's checked every day in its own report section. Edit it on GitHub (pencil icon &rarr; Commit changes) or with commands.</p>
 <p><b>Commands</b>: type in the Message box of your <b>command</b> topic in ntfy (or GitHub app &rarr; Actions &rarr; Watchlist commands &rarr; Run workflow):</p>
@@ -196,12 +196,12 @@
 
 <h2 id="colab">10. Using Colab</h2>
 <div class="card">
-<p><b>Cell 1 (run first, and after any restart):</b> loads the latest code from GitHub:</p>
+<p><b>Cell 1 (Run First, and After Any Restart):</b> loads the latest code from GitHub:</p>
 <pre>!wget -q -O wyckoff_pnf_screener.py https://raw.githubusercontent.com/rrobinson1996-sudo/stock-screener/main/wyckoff_pnf_screener.py
 import importlib, wyckoff_pnf_screener
 importlib.reload(wyckoff_pnf_screener)
 from wyckoff_pnf_screener import *</pre>
-<p><b>Then, as needed:</b></p>
+<p><b>Then, as Needed:</b></p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Run</th><th>For</th></tr></thead><tbody>
 <tr><td class="tk">res = run_screener()</td><td>The full stock screen, same as the daily report</td></tr>
 <tr><td class="tk">check_stocks("MANH, FAST")</td><td>Any stocks through the full system, with verdicts</td></tr>
@@ -209,14 +209,14 @@ from wyckoff_pnf_screener import *</pre>
 <tr><td class="tk">bt = run_backtest()</td><td>5-year backtest of the current rules (a few minutes)</td></tr>
 <tr><td class="tk">runs = compare_box_modes()</td><td>Backtest fixed vs ATR box sizes</td></tr>
 </tbody></table></div>
-<p class="small" style="margin-top:8px"><b>Input box for checks:</b></p>
+<p class="small" style="margin-top:8px"><b>Input Box for Checks:</b></p>
 <pre>#@title Check stocks
 TICKERS = "MANH, FAST, COST"  #@param {type:"string"}
 out = check_stocks(TICKERS)</pre>
-<p class="small"><b>Fund mode backtest:</b> <code>run_backtest(dict(CONFIG, benchmark="SPY", use_earnings=False, require_risk_on=False, min_dollar_vol=10e6), tickers=[...ETFs...])</code></p>
+<p class="small"><b>Fund Mode Backtest:</b> <code>run_backtest(dict(CONFIG, benchmark="SPY", use_earnings=False, require_risk_on=False, min_dollar_vol=10e6), tickers=[...ETFs...])</code></p>
 <p class="small muted">"NameError: ... is not defined" means cell 1 hasn't run since Colab restarted. Run it again.</p></div>
 
-<h2 id="settings">11. Changing settings</h2>
+<h2 id="settings">11. Changing Settings</h2>
 <div class="card">
 <p>All settings are in <b>CONFIG</b> at the top of <b>wyckoff_pnf_screener.py</b> on GitHub. Edit with the pencil icon &rarr; Commit changes. The next daily run uses them; rerun Colab cell 1 before backtesting.</p>
 <div class="scroll"><table class="wrap"><thead><tr><th>Setting</th><th>Now</th><th>Effect</th></tr></thead><tbody>
@@ -231,10 +231,10 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">account_size</td><td>None</td><td>Set e.g. 1000 to get share counts in the tables</td></tr>
 <tr><td class="tk">news_days</td><td>14</td><td>Headline look-back for the red-flag check</td></tr>
 </tbody></table></div>
-<p class="small" style="margin-top:8px"><b>Other files:</b> watchlist.txt (your list) · run_daily.py (report, fund list, cheat sheet) · commands.py (phone commands, limits) · .github/workflows/ (schedules).</p>
+<p class="small" style="margin-top:8px"><b>Other Files:</b> watchlist.txt (your list) · run_daily.py (report, fund list, cheat sheet) · commands.py (phone commands, limits) · .github/workflows/ (schedules).</p>
 <p class="small"><b>Rule:</b> don't change settings because of a bad week or to make a backtest look better. When we reweighted the score to fit 3 years of results, it did worse over 5 years. Change one thing, backtest it, and lock it.</p></div>
 
-<h2 id="evidence">12. What the backtest showed</h2>
+<h2 id="evidence">12. What the Backtest Showed</h2>
 <div class="card">
 <p class="small muted">Weekly evaluations, Aug 2021 &ndash; Aug 2026, current NASDAQ-100 members, 60-day holds, before costs. Survivorship bias flatters everything, so compare against the baseline, not zero.</p>
 <div class="scroll"><table><thead><tr><th>60 days after signal</th><th>Baseline</th><th>BUY new entries</th></tr></thead><tbody>
@@ -252,7 +252,7 @@ out = check_stocks(TICKERS)</pre>
 <li><b>Funds:</b> ranking ETFs vs SPY added only 1&ndash;2 points, and stops didn't help.</li>
 </ul></div>
 
-<h2 id="decisions">13. Decisions we made (and why)</h2>
+<h2 id="decisions">13. Decisions We Made (and Why)</h2>
 <div class="card"><ul class="small">
 <li><b>Rewrote the original Gemini code:</b> its "target hit" signal was fake, breakouts weren't real double tops, Wyckoff events weren't required to happen in order, and errors were silently hidden.</li>
 <li><b>Added momentum, trend and regime gates</b> with long research records; Wyckoff became a scoring bonus, not a requirement.</li>
@@ -279,7 +279,7 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">Node.js / Ubuntu warnings on runs</td><td>Harmless GitHub announcements.</td></tr>
 </tbody></table></div>
 
-<h2 id="setup">15. Setup reference</h2>
+<h2 id="setup">15. Setup Reference</h2>
 <div class="scroll"><table class="wrap"><thead><tr><th>Where (repo Settings)</th><th>Name</th><th>Value</th></tr></thead><tbody>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_TOPIC</td><td>Report topic name</td></tr>
 <tr><td>Secrets and variables &rarr; Actions &rarr; Secrets</td><td class="tk">NTFY_CMD_TOPIC</td><td>Command topic name</td></tr>
