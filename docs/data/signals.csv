@@ -1,0 +1,7 @@
+Date,Ticker,Score,Close,Stop,RiskPct,Objective,Upside,NextEarn,News,NewsFlags,Wyckoff
+2026-11-11,AAPL,89.1,355.63,313.01,12.0,434.58,22.2,2027-01-28,VETO?,"EPS estimates being cut (3 up / 5 down, 30d); 1 downgrade(s) vs 1 upgrade(s), 30d; 2 negative headline(s)",SC>ST>SOS*
+2026-11-11,FAST,88.8,55.49,48.74,12.2,58.81,6.0,2027-01-19,CLEAN,,SC>ST>SOS*
+2026-11-11,TXN,65.2,309.81,244.18,21.2,312.25,0.8,2027-01-26,CLEAN,,SC
+2026-11-11,ADI,64.5,409.08,310.73,24.0,633.01,54.7,2026-11-24,REVIEW,1 negative headline(s),SC
+2026-11-11,AMGN,60.3,468.11,405.91,13.3,636.91,36.1,2027-02-02,VETO?,"EPS estimates being cut (7 up / 9 down, 30d); 1 downgrade(s) vs 0 upgrade(s), 30d; 1 negative headline(s)",SC
+2026-11-11,KDP,60.0,38.25,33.02,13.7,40.02,4.6,2027-02-23,VETO?,"EPS estimates being cut (2 up / 3 down, 30d)",SC
