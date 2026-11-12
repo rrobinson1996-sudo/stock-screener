@@ -5,3 +5,8 @@ Date,Ticker,Score,Close,Stop,RiskPct,Objective,Upside,NextEarn,News,NewsFlags,Wy
 2026-11-11,ADI,64.5,409.08,310.73,24.0,633.01,54.7,2026-11-24,REVIEW,1 negative headline(s),SC
 2026-11-11,AMGN,60.3,468.11,405.91,13.3,636.91,36.1,2027-02-02,VETO?,"EPS estimates being cut (7 up / 9 down, 30d); 1 downgrade(s) vs 0 upgrade(s), 30d; 1 negative headline(s)",SC
 2026-11-11,KDP,60.0,38.25,33.02,13.7,40.02,4.6,2027-02-23,VETO?,"EPS estimates being cut (2 up / 3 down, 30d)",SC
+2026-11-12,FAST,89.4,55.55,49.35,11.2,58.67,5.6,2027-01-19,CLEAN,,SC>ST>SOS*
+2026-11-12,AAPL,88.8,354.88,312.58,11.9,434.58,22.5,2027-01-28,VETO?,"EPS estimates being cut (7 up / 23 down, 30d); 1 downgrade(s) vs 1 upgrade(s), 30d; 1 negative headline(s)",SC>ST>SOS*
+2026-11-12,ADI,64.8,409.29,311.64,23.9,633.01,54.7,2026-11-24,REVIEW,1 negative headline(s),SC
+2026-11-12,AMGN,60.3,467.06,407.01,12.9,542.73,16.2,2027-02-02,VETO?,"1 event headline(s) (deal/takeover type); 1 downgrade(s) vs 0 upgrade(s), 30d; 1 negative headline(s)",SC
+2026-11-12,MAR,60.0,424.66,371.78,12.5,479.7,13.0,2027-02-09,CLEAN,,SC

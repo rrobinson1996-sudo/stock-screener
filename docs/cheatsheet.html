@@ -97,7 +97,10 @@ signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ 
 <tr><td class="tk">remove COST</td><td>Takes it off your watchlist</td></tr>
 <tr><td class="tk">check NVDA FAST</td><td>Replies with the check; watchlist unchanged</td></tr>
 <tr><td class="tk">NVDA</td><td>Same as check</td></tr>
-<tr><td class="tk">list</td><td>Replies with your current watchlist</td></tr>
+<tr><td class="tk">add fund QQQM</td><td>Adds a fund to your fund list (scored vs SPY, shown in Funds with &#9733;)</td></tr>
+<tr><td class="tk">remove fund QQQM</td><td>Takes a fund off your fund list</td></tr>
+<tr><td class="tk">check fund QQQM</td><td>Replies with the fund's check vs SPY</td></tr>
+<tr><td class="tk">list</td><td>Replies with your watchlist and your funds</td></tr>
 <tr><td class="tk">help</td><td>Replies with this command list</td></tr>
 </tbody></table></div>
 <p class="small"><b>Where the answer shows up:</b> not in the command topic, which only shows what you sent. Replies arrive as a new notification in the report topic (and the public topic), and added stocks appear in the next daily report under "Your watchlist".</p>
@@ -111,7 +114,7 @@ The GitHub form replies in about 2 minutes. Messages sent overnight are picked u
 <li><b>Limits:</b> up to 25 stocks on the watchlist and 10 checks per command run. Each check downloads the whole NASDAQ-100 (about a minute), and a long list slows the daily run and invites Yahoo to throttle it.</li>
 <li><b>Don't send the same command over and over.</b> Messages are batched, so five quick messages become one run. Resending won't make the reply come faster.</li>
 <li><b>Typos get added as-is.</b> "add APPL" puts APPL on the list and the report will say "no price data". Send <span class="tk">remove APPL</span> to fix it.</li>
-<li><b>Funds don't belong on the watchlist.</b> ETFs get judged against QQQ there, which isn't meaningful; use the Funds section instead.</li>
+<li><b>Funds go on their own list.</b> Send <span class="tk">add fund QQQM</span>, not plain add: plain add judges a fund against QQQ, which isn't meaningful. Your funds are scored against SPY and always shown in the Funds section (&#9733;). Context only, never trade signals.</li>
 <li><b>Same rules apply.</b> A watchlist stock is only a buy if the regime is RISK-ON, every gate passes and the score is 60+. Adding it doesn't lower the bar.</li>
 <li><b>Commands never trade.</b> They only change the list and send checks. Buying and selling stay with you.</li>
 <li><b>Keep your topic names private.</b> Anyone who knows the command topic could edit your watchlist (nothing else). Every change is saved in watchlist.txt's history on GitHub, so mistakes can be undone.</li>
