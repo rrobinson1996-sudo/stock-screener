@@ -43,6 +43,16 @@ ETFS = [
 ]
 FUND_CFG = dict(S.CONFIG, benchmark="SPY", use_earnings=False, require_risk_on=False,
                 min_dollar_vol=10e6, news_check=False)
+FUND_WATCHLIST = "funds_watchlist.txt"   # your own funds, scored vs SPY like the list above
+FUNDS_SHOWN = 8                          # funds shown before "show all"
+
+
+def fund_text(s):
+    """Stock wording -> fund wording (funds are judged against SPY and the fund list)."""
+    if not isinstance(s, str):
+        return s
+    return (s.replace("the NASDAQ-100", "the fund list").replace("NASDAQ-100", "fund list")
+             .replace("QQQ", "SPY").replace("Take it if the red-flag check is CLEAN.", "Context only, not a trade signal."))
 
 DOCS = Path("docs")
 REPORTS = DOCS / "reports"
@@ -243,7 +253,12 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
         # a measured-move target already below the price has been met - say so
         buys["Upside"] = buys["Upside"].map(lambda u: "met" if pd.notna(u) and u <= 0 else u)
     watch = stocks[stocks["Tier"] == "WATCH"].head(10) if stocks is not None else None
-    fund_top = funds.head(8) if funds is not None else None
+    if funds is not None:
+        mine_f = funds["Mine"] if "Mine" in funds else pd.Series(False, index=funds.index)
+        top = funds.index.isin(funds.head(FUNDS_SHOWN).index) | mine_f.values
+        fund_top, fund_rest = funds[top], funds[~top]
+    else:
+        fund_top = fund_rest = None
 
     buy_cols = [("Ticker", "Ticker", "ticker"), ("News", "Red flags", "badge"), ("Score", "Score", "int"),
                 ("Close", "Close", "money"), ("Stop", "Stop", "money"), ("RiskPct", "Risk", "pct"),
@@ -252,7 +267,7 @@ def build_html(stocks, funds, notes, recent_links, cheat_href="cheatsheet.html",
     watch_cols = [("Ticker", "Ticker", "ticker"), ("Score", "Score", "int"), ("Needs", "What it needs to become a BUY", "need"),
                   ("News", "Red flags", "badge"), ("Close", "Close", "money"), ("RS", "RS P&F", None),
                   ("MomPct", "Mom rank", "int"), ("OffHigh", "Off high", "pct"), ("Wyckoff", "Wyckoff", None)]
-    fund_cols = [("Ticker", "Fund", "ticker"), ("Tier", "Tier", "badge"), ("Score", "Score", "int"),
+    fund_cols = [("Ticker", "Fund", "ticker"), ("Yours", "", None), ("Tier", "Tier", "badge"), ("Score", "Score", "int"),
                  ("Close", "Close", "money"), ("RS", "RS vs SPY", None), ("MomPct", "Mom rank", "int"),
                  ("OffHigh", "Off high", "pct"), ("Failed", "Missing", None)]
 
@@ -297,8 +312,10 @@ REVIEW = read the headlines. Never adds a stock the screener didn't flag.</p>
 {red_flag_cards(stocks)}
 
 <h2>Funds (vs SPY)</h2>
-<p class="muted small">Which part of the market is leading. Edge vs SPY is thin in backtests - use as context, not a trading signal.</p>
+<p class="muted small">Which part of the market is leading. Edge vs SPY is thin in backtests - use as context, not a trading signal.
+The top {FUNDS_SHOWN} by score are shown, plus your funds (&#9733;).</p>
 {table(fund_top, fund_cols)}
+{"" if fund_rest is None or fund_rest.empty else f'<details style="margin-top:8px"><summary class="small">Show all {len(funds)} funds</summary>{table(fund_rest, fund_cols)}</details>'}
 
 <h2>History</h2>
 <p class="small">{links} · <a href="scores.html">All scores</a> · <a href="data/signals.csv">BUY signal log (CSV)</a></p>
@@ -361,7 +378,10 @@ signals taken in CAUTION markets returned about 0% over 60 days and trailed QQQ 
 <tr><td class="tk">remove COST</td><td>Takes it off your watchlist</td></tr>
 <tr><td class="tk">check NVDA FAST</td><td>Replies with the check; watchlist unchanged</td></tr>
 <tr><td class="tk">NVDA</td><td>Same as check</td></tr>
-<tr><td class="tk">list</td><td>Replies with your current watchlist</td></tr>
+<tr><td class="tk">add fund QQQM</td><td>Adds a fund to your fund list (scored vs SPY, shown in Funds with &#9733;)</td></tr>
+<tr><td class="tk">remove fund QQQM</td><td>Takes a fund off your fund list</td></tr>
+<tr><td class="tk">check fund QQQM</td><td>Replies with the fund's check vs SPY</td></tr>
+<tr><td class="tk">list</td><td>Replies with your watchlist and your funds</td></tr>
 <tr><td class="tk">help</td><td>Replies with this command list</td></tr>
 </tbody></table></div>
 <p class="small"><b>Where the answer shows up:</b> not in the command topic, which only shows what you sent. Replies arrive as a new notification in the report topic (and the public topic), and added stocks appear in the next daily report under "Your watchlist".</p>
@@ -375,7 +395,7 @@ The GitHub form replies in about 2 minutes. Messages sent overnight are picked u
 <li><b>Limits:</b> up to 25 stocks on the watchlist and 10 checks per command run. Each check downloads the whole NASDAQ-100 (about a minute), and a long list slows the daily run and invites Yahoo to throttle it.</li>
 <li><b>Don't send the same command over and over.</b> Messages are batched, so five quick messages become one run. Resending won't make the reply come faster.</li>
 <li><b>Typos get added as-is.</b> "add APPL" puts APPL on the list and the report will say "no price data". Send <span class="tk">remove APPL</span> to fix it.</li>
-<li><b>Funds don't belong on the watchlist.</b> ETFs get judged against QQQ there, which isn't meaningful; use the Funds section instead.</li>
+<li><b>Funds go on their own list.</b> Send <span class="tk">add fund QQQM</span>, not plain add: plain add judges a fund against QQQ, which isn't meaningful. Your funds are scored against SPY and always shown in the Funds section (&#9733;). Context only, never trade signals.</li>
 <li><b>Same rules apply.</b> A watchlist stock is only a buy if the regime is RISK-ON, every gate passes and the score is 60+. Adding it doesn't lower the bar.</li>
 <li><b>Commands never trade.</b> They only change the list and send checks. Buying and selling stay with you.</li>
 <li><b>Keep your topic names private.</b> Anyone who knows the command topic could edit your watchlist (nothing else). Every change is saved in watchlist.txt's history on GitHub, so mistakes can be undone.</li>
@@ -393,8 +413,8 @@ def build_manual(src="manual_body.html"):
 {body}</main></body></html>"""
 
 
-def all_scores(stocks, mine):
-    """Every stock tracked today with its score and a plain-English reason."""
+def all_scores(stocks, mine, funds=None):
+    """Every stock (and fund) tracked today with its score and a plain-English reason."""
     rows = []
     wl = set(mine["Ticker"]) if mine is not None else set()
     if stocks is not None:
@@ -416,11 +436,24 @@ def all_scores(stocks, mine):
                              Close=r.get("Close"), Failed=r.get("Failed") or "",
                              Stop=r.get("Stop"), Objective=r.get("Objective")))
     df = pd.DataFrame(rows)
-    if df.empty:
-        return df
     order = {"BUY": 0, "WATCH": 1, "NO": 2, "n/a": 3}
-    df["_o"] = df["Tier"].map(order).fillna(2)
-    return df.sort_values(["_o", "Score"], ascending=[True, False], na_position="last").drop(columns="_o")
+    if not df.empty:
+        df["_o"] = df["Tier"].map(order).fillna(2)
+        df = df.sort_values(["_o", "Score"], ascending=[True, False], na_position="last").drop(columns="_o")
+    if funds is not None and not funds.empty:
+        fr = []
+        for _, r in funds.iterrows():
+            tier = r.get("Tier") or "NO"
+            reason = (S.watch_needs(r, FUND_CFG) if tier == "WATCH" else S.plain_verdict(dict(r, Tier=tier), FUND_CFG))
+            fr.append(dict(Ticker=r["Ticker"], Score=r.get("Score"), Tier=tier,
+                           Source="Your fund" if r.get("Mine") else "Fund",
+                           Reason=fund_text(reason), RedFlags="", Close=r.get("Close"),
+                           Failed=r.get("Failed") or "", Stop=None, Objective=r.get("Objective")))
+        f = pd.DataFrame(fr)
+        f["_o"] = f["Tier"].map(order).fillna(2)
+        f = f.sort_values(["_o", "Score"], ascending=[True, False], na_position="last").drop(columns="_o")
+        df = pd.concat([df, f], ignore_index=True)
+    return df
 
 
 def _clean(v):
@@ -433,12 +466,22 @@ def _clean(v):
     return round(v, 4) if isinstance(v, float) else v
 
 
-def build_chart_data(scores, data, cfg, asof):
-    """One small JSON with P&F columns for every tracked stock (drawn on the phone)."""
+def build_chart_data(scores, data, cfg, asof, fdata=None):
+    """One small JSON with P&F columns for every tracked stock and fund (drawn on the phone)."""
+    is_fund = scores["Source"].astype(str).str.contains("fund", case=False)
+    out = {}
+    _chart_items(out, scores[~is_fund], data, cfg)
+    if fdata and is_fund.any():
+        _chart_items(out, scores[is_fund], fdata, FUND_CFG, bench="SPY")
+    return dict(asof=asof, benchmark=cfg["benchmark"], stocks=out)
+
+
+def _chart_items(out, scores, data, cfg, bench=None):
     syms = [t for t in scores["Ticker"] if t in data]
+    if not syms:
+        return
     _, prepared, _ = S.prepare(syms, data, cfg)
     W = cfg["pnf_window"]
-    out = {}
     for _, r in scores.iterrows():
         t = r["Ticker"]
         if t not in prepared:
@@ -455,7 +498,8 @@ def build_chart_data(scores, data, cfg, asof):
             tier=r["Tier"], score=r["Score"], reason=r["Reason"], flags=r["RedFlags"], src=r["Source"],
             close=r["Close"], stop=r.get("Stop"), target=r.get("Objective")).items()}
         out[t].update(px=px, rs=rsd)
-    return dict(asof=asof, benchmark=cfg["benchmark"], stocks=out)
+        if bench:
+            out[t]["bench"] = bench
 
 
 CHART_JS = r"""
@@ -551,7 +595,7 @@ function show(d){
  <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
  if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
   h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="small pat">${patLine(s.px)}</div><div class="scroll ch">${svg(s.px,mk)}</div>${patList(s.px)}`;}
- if(s.rs){h+=`<h2>Relative strength vs ${d.benchmark}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${d.benchmark}</div><div class="small pat">${patLine(s.rs)}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>${patList(s.rs)}`;}
+ if(s.rs){const bm=s.bench||d.benchmark;h+=`<h2>Relative strength vs ${bm}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${bm}</div><div class="small pat">${patLine(s.rs)}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>${patList(s.rs)}`;}
  el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
 }
 fetch('data/pnf.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
@@ -606,6 +650,11 @@ select{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:1
 </main><script>{CHART_JS}</script></body></html>"""
 
 
+def _src_code(src):
+    s = str(src).lower()
+    return "fw" if s == "your fund" else "f" if s == "fund" else "w" if "watchlist" in s else "n"
+
+
 def build_scores_page(df, asof):
     items = []
     for _, r in df.iterrows():
@@ -613,12 +662,14 @@ def build_scores_page(df, asof):
         flags = badge(r["RedFlags"]) if r["RedFlags"] else ""
         items.append(
             f'<div class="srow" data-t="{esc(r["Ticker"]).lower()}" data-tier="{esc(r["Tier"])}" '
-            f'data-src="{"w" if "watchlist" in str(r["Source"]).lower() else "n"}">'
+            f'data-src="{_src_code(r["Source"])}">'
             f'<div class="row"><span><a class="tk big" href="chart.html?t={esc(r["Ticker"])}">{esc(r["Ticker"])}</a> '
             f'<span class="muted small">{esc(r["Source"])}</span></span>'
             f'<span>{badge(r["Tier"])} {flags} <b class="sc">{esc(sc)}</b></span></div>'
             f'<div class="small">{esc(r["Reason"])}</div></div>')
-    counts = df["Tier"].value_counts().to_dict()
+    stocks_only = df[~df["Source"].astype(str).str.lower().str.contains("fund")]
+    n_funds = len(df) - len(stocks_only)
+    counts = stocks_only["Tier"].value_counts().to_dict()
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>All scores {esc(asof)}</title><style>{CSS}
@@ -629,17 +680,18 @@ def build_scores_page(df, asof):
 #q{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px}}
 </style></head><body><main>
 <div class="row"><h1>All Scores</h1><span class="small links"><a href="index.html">Report</a><a href="data/scores_latest.csv">CSV</a></span></div>
-<div class="muted small">Every stock tracked on {esc(asof)}: {len(df)} total · {counts.get("BUY", 0)} BUY · {counts.get("WATCH", 0)} WATCH. Sorted BUY, then WATCH, then the rest, highest score first.</div>
+<div class="muted small">Every stock tracked on {esc(asof)}: {len(stocks_only)} stocks · {counts.get("BUY", 0)} BUY · {counts.get("WATCH", 0)} WATCH. Sorted BUY, then WATCH, then the rest, highest score first.{f" Then {n_funds} funds, scored against SPY: context only, not trade signals." if n_funds else ""}</div>
 <input id="q" placeholder="Find a ticker, e.g. MANH" oninput="f()" style="margin-top:12px">
 <div class="filters"><button class="on" data-f="all">All</button><button data-f="BUY">BUY</button>
-<button data-f="WATCH">WATCH</button><button data-f="w">My watchlist</button><button data-f="NO">Not a buy</button></div>
+<button data-f="WATCH">WATCH</button><button data-f="w">My watchlist</button><button data-f="NO">Not a buy</button><button data-f="f">Funds</button></div>
 <div id="list">{"".join(items)}</div>
 <footer>Score cutoff for BUY is 60, with every gate passed and the regime RISK-ON. Research tool, not financial advice.</footer>
 </main><script>
 var mode='all';
 function f(){{var q=document.getElementById('q').value.trim().toLowerCase();
 document.querySelectorAll('.srow').forEach(function(e){{
-var ok=(!q||e.dataset.t.indexOf(q)===0)&&(mode==='all'||(mode==='w'?e.dataset.src==='w':e.dataset.tier===mode));
+var s=e.dataset.src,fund=s.charAt(0)==='f';
+var ok=(!q||e.dataset.t.indexOf(q)===0)&&(mode==='all'||(mode==='w'?(s==='w'||s==='fw'):mode==='f'?fund:(!fund&&e.dataset.tier===mode)));
 e.style.display=ok?'':'none';}});}}
 document.querySelectorAll('.filters button').forEach(function(b){{b.onclick=function(){{
 document.querySelectorAll('.filters button').forEach(function(x){{x.classList.remove('on')}});
@@ -745,6 +797,29 @@ def read_watchlist(path="watchlist.txt"):
     return list(dict.fromkeys(t.upper() for t in out))
 
 
+def add_my_funds(funds, fdata, notes):
+    """Mark your funds (funds_watchlist.txt) and score any that aren't on the standard list.
+    Momentum is ranked against the standard fund list, so scores stay comparable."""
+    mine = read_watchlist(FUND_WATCHLIST)
+    funds = funds.copy()
+    funds["Mine"] = funds["Ticker"].isin(mine)
+    extra = [t for t in mine if t not in set(funds["Ticker"])]
+    if extra:
+        try:
+            got = S.download_data([t for t in extra if t not in fdata], FUND_CFG, FUND_CFG["history"])
+            fdata.update(got)
+            res = S.check_stocks(extra, FUND_CFG, universe=ETFS, data=fdata, news=False)
+            if res is not None:
+                res = res.assign(Mine=True)
+                funds = pd.concat([funds, res], ignore_index=True)
+        except Exception as e:
+            notes.append(f"Your funds check failed: {type(e).__name__}: {e}")
+    funds["Yours"] = funds["Mine"].map(lambda m: "\u2605" if m else "")
+    order = {"BUY": 0, "WATCH": 1, "NO": 2, "n/a": 3}
+    funds["_o"] = funds["Tier"].fillna("NO").replace("", "NO").map(order).fillna(2)
+    return funds.sort_values(["_o", "Score"], ascending=[True, False], na_position="last").drop(columns="_o")
+
+
 def main():
     notes = []
     cfg = dict(S.CONFIG)
@@ -789,6 +864,8 @@ def main():
     funds = S.run_screener(FUND_CFG, tickers=ETFS, data=fdata, earnings={}) if FUND_CFG["benchmark"] in fdata else None
     if funds is None:
         notes.append("Fund screen unavailable today.")
+    else:
+        funds = add_my_funds(funds, fdata, notes)
 
     asof = stocks.attrs["asof"]
     REPORTS.mkdir(parents=True, exist_ok=True)
@@ -798,13 +875,13 @@ def main():
     names = sorted({p.stem for p in past} | {asof}, reverse=True)[:15]
     page = build_html(stocks, funds, notes, [(n, f"reports/{n}.html") for n in names], mine=mine)
     (DOCS / "index.html").write_text(page, encoding="utf-8")
-    scores = all_scores(stocks, mine)
+    scores = all_scores(stocks, mine, funds)
     if not scores.empty:
         DATA.mkdir(parents=True, exist_ok=True)
         scores.assign(Date=asof).to_csv(DATA / "scores_latest.csv", index=False)
         (DOCS / "scores.html").write_text(build_scores_page(scores, asof), encoding="utf-8")
         try:
-            cd = build_chart_data(scores, data, cfg, asof)
+            cd = build_chart_data(scores, data, cfg, asof, fdata)
             (DATA / "pnf.json").write_text(json.dumps(cd, separators=(",", ":")), encoding="utf-8")
         except Exception as e:
             print(f"Chart data failed: {type(e).__name__}: {e}")

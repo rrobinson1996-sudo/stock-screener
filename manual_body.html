@@ -167,7 +167,7 @@
 <li><b>It scores 60+, but misses exactly one gate.</b> Most often that's the market regime (CAUTION), or being too stretched above its 50-day average.</li>
 </ul>
 The <b>"What it needs to become a BUY"</b> column spells it out in plain English, such as "Ready except for the market: needs the market regime to turn RISK-ON" or "Needs 8 more score points (now 52), e.g. from a Wyckoff sign of strength (+15)". Watch-list stocks are not trades; they're the likeliest next candidates. Do nothing until one becomes a BUY.</li>
-<li><b>Funds (vs SPY):</b> which part of the market is leading. Context, not trades.</li>
+<li><b>Funds (vs SPY):</b> which part of the market is leading. Context, not trades. Shows the top 8 by score plus your funds (&#9733;); tap <b>Show all</b> for the full list. Funds are also on the All Scores page (Funds filter) with P&amp;F charts vs SPY.</li>
 <li><b>P&amp;F charts:</b> tap any ticker (in the tables, cards or All Scores) to open its Point &amp; Figure charts: the stock&#39;s price chart with Now, Stop and Target lines, and its relative-strength chart vs QQQ. Bold columns are the ones that triggered a BUY or SELL signal. Named P&amp;F patterns (double and triple tops, catapults, poles and others) are labeled with short codes and listed in a legend, <b>for learning to recognize them only</b>. They never change a score or decision; decisions come only from the report. A "How to read it" guide is at the bottom of the chart page. Charts reflect the latest daily run.</li>
 <li><b>All Scores</b> (link at the top): every stock tracked that day, with its score, tier, red-flag badge and a plain-English reason. Search a ticker or filter by BUY, WATCH, My watchlist or Not a buy. It&#39;s the place to check why a stock you expected isn&#39;t on the lists. A CSV of the same data is linked on that page.</li>
 <li><b>History:</b> past reports and the signal log.</li>
@@ -237,7 +237,10 @@ The <b>"What it needs to become a BUY"</b> column spells it out in plain English
 <tr><td class="tk">add MANH</td><td>Add to the watchlist and reply with the full check</td></tr>
 <tr><td class="tk">remove COST</td><td>Remove from the watchlist</td></tr>
 <tr><td class="tk">check NVDA FAST</td><td>Reply with the check; watchlist unchanged (a bare ticker works too)</td></tr>
-<tr><td class="tk">list</td><td>Reply with the current watchlist</td></tr>
+<tr><td class="tk">add fund QQQM</td><td>Add a fund to <b>funds_watchlist.txt</b>: it's scored against SPY and always shown in the Funds section, marked &#9733;</td></tr>
+<tr><td class="tk">remove fund QQQM</td><td>Take a fund off your fund list</td></tr>
+<tr><td class="tk">check fund QQQM</td><td>Reply with the fund's check vs SPY; nothing changed</td></tr>
+<tr><td class="tk">list</td><td>Reply with the watchlist and your funds</td></tr>
 <tr><td class="tk">help</td><td>Reply with the command list</td></tr>
 </tbody></table></div>
 <ul class="small">
@@ -245,7 +248,7 @@ The <b>"What it needs to become a BUY"</b> column spells it out in plain English
 <li><b>remove</b> only edits your watchlist. It never affects the NASDAQ-100 scan.</li>
 <li>Limits: 25 stocks on the watchlist, 10 checks per run. Resending doesn't speed things up.</li>
 <li>Typos get added as-is ("no price data" in the report): send remove to fix.</li>
-<li>Don't put funds on the watchlist (they're judged vs QQQ there). Use the Funds section.</li>
+<li>Add funds with <b>add fund</b>, not plain add: plain add judges them like a stock, against QQQ, which isn't meaningful. Your funds are context, never trade signals. Limit: 10.</li>
 <li><b>Three topics:</b> your <b>private report topic</b> (daily summary plus your positions), a <b>public topic</b> (the same summary without positions, shared with family) and the <b>command topic</b> (shared, so others can add stocks). Command replies go to both the private and public topics, so whoever sent the command sees the answer. Subscribe to the private topic only; subscribing to the public one too would give you duplicates.</li>
 <li><b>Never share the private report topic:</b> it carries your positions and sell alerts. Anyone with the command topic can add or remove watchlist stocks (nothing else), and every change is in watchlist.txt&#39;s GitHub history, so it can be undone.</li>
 </ul></div>
@@ -311,7 +314,7 @@ out = check_stocks(TICKERS)</pre>
 <tr><td class="tk">account_size</td><td>None</td><td>Set e.g. 1000 to get share counts in the tables</td></tr>
 <tr><td class="tk">news_days</td><td>14</td><td>Headline look-back for the red-flag check</td></tr>
 </tbody></table></div>
-<p class="small" style="margin-top:8px"><b>Other Files:</b> watchlist.txt (your list) · run_daily.py (report, fund list, cheat sheet) · commands.py (phone commands, limits) · .github/workflows/ (schedules).</p>
+<p class="small" style="margin-top:8px"><b>Other Files:</b> watchlist.txt (your stocks) · funds_watchlist.txt (your funds) · run_daily.py (report, fund list, cheat sheet) · commands.py (phone commands, limits) · .github/workflows/ (schedules).</p>
 <p class="small"><b>Rule:</b> don't change settings because of a bad week or to make a backtest look better. When we reweighted the score to fit 3 years of results, it did worse over 5 years. Change one thing, backtest it, and lock it.</p></div>
 
 <h2 id="evidence">14. What the Backtest Showed</h2>

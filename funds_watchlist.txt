@@ -1,0 +1,3 @@
+# Your funds - scored every day against SPY in the report's Funds section.
+# One ticker per line. Anything after # is ignored. Context only, not trade signals.
+QQQM

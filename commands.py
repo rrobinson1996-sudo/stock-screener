@@ -9,7 +9,10 @@ workflow form on GitHub) such as:
     remove COST         take it off the watchlist
     check NVDA FAST     run the full check without changing the watchlist
     MANH                a bare ticker means "check"
-    list                reply with the current watchlist
+    list                reply with the current watchlist (stocks and funds)
+    add fund QQQM       add a fund to funds_watchlist.txt (scored vs SPY in the Funds section)
+    remove fund QQQM    take a fund off
+    check fund QQQM     check a fund vs SPY without adding it
 
 Replies arrive on your normal ntfy topic.
 
@@ -28,6 +31,9 @@ import urllib.request
 from pathlib import Path
 
 WATCHLIST = Path("watchlist.txt")
+FUND_WATCHLIST = Path("funds_watchlist.txt")
+FUND_WORDS = {"fund", "funds", "etf", "etfs"}
+MAX_FUNDS = 10
 STATE = Path(".state/ntfy_since")
 PENDING = Path("pending_commands.txt")
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.\-]{0,9}$")
@@ -37,7 +43,8 @@ HELP = ("Commands (send to your command topic):\n"
         "add MANH - add to watchlist + check\n"
         "remove MANH - take off watchlist (never affects the NASDAQ-100 scan)\n"
         "check NVDA FAST - check only (or just send NVDA)\n"
-        "list - show watchlist\n"
+        "add fund QQQM / remove fund QQQM / check fund QQQM - funds, judged vs SPY\n"
+        "list - show watchlist and your funds\n"
         f"Limits: {MAX_WATCHLIST} on the watchlist, {MAX_CHECK} checks per run. "
         "Replies come here (not in the command topic) in 15-30 min, 6am-10pm CT. "
         "Added stocks also show in the daily report under Your watchlist. Full guide: cheat sheet.")
@@ -83,25 +90,29 @@ def fetch():
 
 # ------------------------------------------------------------------ parsing / watchlist
 def parse(text):
-    """'add MANH, cost' -> ('add', ['MANH','COST']); 'NVDA' -> ('check', ['NVDA'])"""
+    """'add MANH, cost' -> ('add', ['MANH','COST'], [], False); 'NVDA' -> ('check', ['NVDA'], [], False);
+    'add fund QQQM' -> ('add', ['QQQM'], [], True)"""
     words = [w for w in re.split(r"[,\s]+", text.strip()) if w]
     if not words:
-        return None, [], []
+        return None, [], [], False
     verb = VERBS.get(words[0].lower())
     rest = words[1:] if verb else words
     verb = verb or "check"
+    fund = bool(rest) and rest[0].lower() in FUND_WORDS
+    if fund:
+        rest = rest[1:]
     tickers, bad = [], []
     for w in rest:
         t = w.upper().replace("$", "")
         (tickers if TICKER_RE.match(t) else bad).append(t)
-    return verb, list(dict.fromkeys(tickers)), bad
+    return verb, list(dict.fromkeys(tickers)), bad, fund
 
 
-def read_watchlist():
-    if not WATCHLIST.exists():
+def read_watchlist(path=WATCHLIST):
+    if not path.exists():
         return [], []
     header, tickers = [], []
-    for line in WATCHLIST.read_text(encoding="utf-8").splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip().startswith("#") or not line.strip():
             if not tickers:
                 header.append(line)
@@ -110,11 +121,23 @@ def read_watchlist():
     return header, list(dict.fromkeys(tickers))
 
 
-def write_watchlist(header, tickers):
-    WATCHLIST.write_text("\n".join(header + tickers) + "\n", encoding="utf-8")
+def write_watchlist(header, tickers, path=WATCHLIST):
+    path.write_text("\n".join(header + tickers) + "\n", encoding="utf-8")
+
+
+FUND_HEADER = ["# Your funds - scored every day against SPY in the report's Funds section.",
+               "# One ticker per line. Anything after # is ignored. Context only, not trade signals."]
 
 
 # ------------------------------------------------------------------ apply
+def describe_fund(r):
+    from run_daily import fund_text
+    if r.get("Tier") == "n/a":
+        return f"{r['Ticker']} (fund): {r['Verdict']}"
+    return (f"{r['Ticker']} (fund vs SPY): {r['Tier']} - score {r['Score']:.0f}, RS {r.get('RS')}, "
+            f"momentum rank {r.get('MomPct', 0):.0f}, {r.get('OffHigh')}% off high. {fund_text(r['Verdict'])}")
+
+
 def describe(r):
     if r.get("Tier") == "n/a":
         return f"{r['Ticker']}: {r['Verdict']}"
@@ -131,10 +154,12 @@ def apply():
     texts = [t for t in PENDING.read_text(encoding="utf-8").splitlines() if t.strip()] \
         if PENDING.exists() else []
     header, wl = read_watchlist()
-    changed, to_check, replies = False, [], []
+    fheader, fl = read_watchlist(FUND_WATCHLIST)
+    fheader = fheader or FUND_HEADER
+    changed, fchanged, to_check, f_check, replies = False, False, [], [], []
 
     for text in texts:
-        verb, tickers, bad = parse(text)
+        verb, tickers, bad, fund = parse(text)
         if bad:
             replies.append(f"Ignored (not a ticker): {', '.join(bad)}")
         if verb == "help" or (verb != "list" and not tickers):
@@ -142,6 +167,27 @@ def apply():
             continue
         if verb == "list":
             replies.append("Watchlist: " + (", ".join(wl) or "empty"))
+            replies.append("Your funds: " + (", ".join(fl) or "none"))
+        elif fund and verb == "add":
+            new = [t for t in tickers if t not in fl]
+            room = max(MAX_FUNDS - len(fl), 0)
+            if len(new) > room:
+                replies.append(f"Your fund list is capped at {MAX_FUNDS}. Not added: {', '.join(new[room:])}.")
+                new = new[:room]
+            fl += new
+            fchanged |= bool(new)
+            dup = [t for t in tickers if t not in new and t in fl]
+            replies.append(" ".join(filter(None, [
+                f"Added fund {', '.join(new)}." if new else "",
+                f"Already on your fund list: {', '.join(dup)}." if dup else ""])))
+            f_check += tickers
+        elif fund and verb == "remove":
+            gone = [t for t in tickers if t in fl]
+            fl = [t for t in fl if t not in tickers]
+            fchanged |= bool(gone)
+            replies.append(f"Removed fund {', '.join(gone)}." if gone else f"Not on your fund list: {', '.join(tickers)}.")
+        elif fund:
+            f_check += tickers
         elif verb == "add":
             new = [t for t in tickers if t not in wl]
             dup = [t for t in tickers if t in wl]
@@ -167,6 +213,9 @@ def apply():
     if changed:
         write_watchlist(header, wl)
         replies.append("Watchlist now: " + (", ".join(wl) or "empty"))
+    if fchanged:
+        write_watchlist(fheader, fl, FUND_WATCHLIST)
+        replies.append("Your funds now: " + (", ".join(fl) or "none"))
 
     to_check = list(dict.fromkeys(to_check))
     if len(to_check) > MAX_CHECK:
@@ -181,7 +230,17 @@ def apply():
             replies.append(f"Market regime {regime} (data as of {res.attrs.get('asof')}).")
             replies += [describe(r) for _, r in res.iterrows()]
 
-    title = "Check: " + ", ".join(to_check[:4]) if to_check else "Watchlist update"
+    f_check = list(dict.fromkeys(f_check))[:MAX_CHECK]
+    if f_check:
+        from run_daily import ETFS, FUND_CFG
+        res = S.check_stocks(f_check, FUND_CFG, universe=ETFS, news=False)
+        if res is None:
+            replies.append("Fund check failed: price data unavailable. Try again later.")
+        else:
+            replies += [describe_fund(r) for _, r in res.iterrows()]
+
+    checked = to_check + f_check
+    title = "Check: " + ", ".join(checked[:4]) if checked else "Watchlist update"
     body = "\n".join(replies) or "Nothing to do."
     print(title, "\n" + body)
     # Replies go to both topics, so whoever sent the command sees the result.
