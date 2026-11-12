@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: "e.g.  add MANH  |  remove COST  |  check NVDA, FAST  |  list"
+        description: "e.g.  add MANH  |  remove COST  |  check NVDA, FAST  |  add fund QQQM  |  check fund QQQM  |  list"
         required: true
   schedule:
     # Check your ntfy command topic every 15 minutes, 6 AM to 10 PM Central.
