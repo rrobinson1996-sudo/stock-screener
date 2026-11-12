@@ -21,6 +21,8 @@ and compared with QQQ over the same days. Open rows get exactly one action:
   6. Target met          -> HOLD (stop unchanged)
   7. Fresh BUY again     -> ADD (OPTIONAL), within the 1% risk budget
   8. Otherwise           -> No action, with a status line
+Leave Entry price blank to buy at the open: the system fills it from the open on the
+Entry date (WAITING until that day has traded).
 The stop is never moved: the backtest showed a fixed stop beat every trailing style.
 Tabs with "paper" or "test" in the name never raise the SELL alert in the title.
 
@@ -113,8 +115,24 @@ def write_results(ws, results, n_rows):
             continue
         hm.append([_blank(r["close"]), _blank(r["days"]), r["health"], r["action"], r["why"], "'" + stamp])
         s.append([_blank(r.get("qqq"))])
-    ws.batch_update([{"range": f"H2:M{n_rows}", "values": hm}, {"range": f"S2:S{n_rows}", "values": s}],
-                    value_input_option="USER_ENTERED")
+    upd = [{"range": f"H2:M{n_rows}", "values": hm}, {"range": f"S2:S{n_rows}", "values": s}]
+    # entry prices the system filled from the open on the entry date
+    upd += [{"range": f"D{r['row']}", "values": [[r["filled_entry"]]]} for r in results if r.get("filled_entry")]
+    ws.batch_update(upd, value_input_option="USER_ENTERED")
+
+
+def fill_entry(p, df):
+    """Entry price left blank -> use the open on the entry date (the 'buy at the next open' rule).
+    Returns 'filled', 'waiting' (that day hasn't traded yet) or None."""
+    if p["entry"] is not None or p["entry_date"] is None or p["exit"] is not None:
+        return None
+    if df is None or df.empty:
+        return None
+    day = df[df.index.normalize() == pd.Timestamp(p["entry_date"]).normalize()]
+    if day.empty:
+        return "waiting" if pd.Timestamp(p["entry_date"]) > df.index[-1] else None
+    p["entry"] = round(float(day["Open"].iloc[0]), 2)
+    return "filled"
 
 
 # ------------------------------------------------------------------ QQQ comparisons
@@ -273,7 +291,7 @@ def summary_line(results, label="Positions"):
     """Short text for the notification."""
     if results is None:
         return ""
-    live = [r for r in results if r["action"] != "CLOSED"]
+    live = [r for r in results if r["action"] not in ("CLOSED", "WAITING")]
     if not live:
         return f"{label}: no open positions."
     acts = [f"{r['action']} {r['ticker']}" for r in live if r["action"] != "No action"]
@@ -341,7 +359,16 @@ def run_positions(S, cfg, data, universe):
                     else:
                         r = closed_result(p, df, qqq)
                 else:
-                    r = dict(assess(p, chk.get(p["ticker"]), df, today), qqq=qqq)
+                    fe = fill_entry(p, df)
+                    if fe == "waiting":
+                        r = dict(row=p["row"], ticker=p["ticker"], close=None, days=0, health="", qqq=None,
+                                 action="WAITING", why=f"Planned buy at the open on {p['entry_date'].date()}. "
+                                 "The entry price fills in after that day's run.")
+                    else:
+                        r = dict(assess(p, chk.get(p["ticker"]), df, today), qqq=qqq)
+                        if fe == "filled":
+                            r["filled_entry"] = p["entry"]
+                            r["why"] = f"Entry filled at the {p['entry_date'].date()} open, ${p['entry']:,.2f}. " + r["why"]
             except Exception as e:
                 r = dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="Unknown", qqq=None,
                          action="CHECK", why=f"Couldn't evaluate ({type(e).__name__}). Check manually.")
