@@ -8,7 +8,7 @@ a "Paper" one for pretend money, or any others you add. Columns:
   H Last close | I Days held | J Health | K Action | L Why | M Updated                  (system)
   N Gain % | O Value | P $ at risk to stop                                            (formulas)
   Q Exit date | R Exit price                                                          (you, when you sell)
-  S QQQ same period                                                                   (system)
+  S QQQ same period: QQQ from the open on the entry date to the exit (or latest) close (system)
   T Trade return | U vs QQQ                                                           (formulas)
 
 A row with an exit is a closed trade: it is kept for the record, marked CLOSED,
@@ -144,9 +144,19 @@ def _close_on(df, d):
     return float(s.iloc[-1]) if len(s) else None
 
 
+def _open_on(df, d):
+    """Open on date d (trades are bought at the open), or the last close before it if d didn't trade."""
+    if df is None or df.empty or d is None:
+        return None
+    day = df[df.index.normalize() == pd.Timestamp(d).normalize()]
+    if not day.empty and "Open" in day and pd.notna(day["Open"].iloc[0]):
+        return float(day["Open"].iloc[0])
+    return _close_on(df, d)
+
+
 def qqq_change(bench, start, end=None):
-    """QQQ % change from the close on `start` to the close on `end` (or the latest close)."""
-    a = _close_on(bench, start)
+    """QQQ % change from the open on `start` (the buy) to the close on `end` (or the latest close)."""
+    a = _open_on(bench, start)
     b = _close_on(bench, end) if end is not None else (float(bench["Close"].iloc[-1]) if bench is not None and not bench.empty else None)
     if not a or b is None:
         return None
