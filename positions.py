@@ -310,6 +310,14 @@ def summary_line(results, label="Positions"):
     return f"{label}: " + " · ".join(bits)
 
 
+def account_label(title):
+    """Notification label: the Positions tab is the real account; other tabs keep their name."""
+    t = title.strip()
+    if t.lower() == "positions":
+        return "Real account"
+    return t if "account" in t.lower() else f"{t} account"
+
+
 def account_tabs(sh):
     """Every tab laid out like Positions (A1 = Ticker), except the helper tabs."""
     tabs = []
@@ -390,7 +398,7 @@ def run_positions(S, cfg, data, universe):
         paper = is_paper(ws.title)
         if not paper:
             sells += [r["ticker"] for r in results if r["action"].startswith("SELL")]
-        lines.append(summary_line(results, ws.title))
+        lines.append(summary_line(results, account_label(ws.title)))
         print(f"[{ws.title}]{' (paper)' if paper else ''}")
         for r in results:
             print(f"  {r['ticker']:6s} {r['action']:22s} {r['why']}")
@@ -400,5 +408,5 @@ def run_positions(S, cfg, data, universe):
     except Exception as e:
         print(f"Couldn't update the Cash tab: {e}")
     if not books:
-        lines = ["Positions: no account tabs found in your sheet."]
+        lines = ["Holdings: no account tabs found in your sheet."]
     return every, list(dict.fromkeys(sells)), "\n".join(lines)
