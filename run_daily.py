@@ -712,7 +712,8 @@ def build_cheatsheet():
 
 
 # ------------------------------------------------------------------ notify
-def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None, cheat=None, env="NTFY_TOPIC"):
+def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None, cheat=None, env="NTFY_TOPIC",
+           mine_url=None):
     """Send to the topic named by the env variable: NTFY_TOPIC (private, includes positions)
     or NTFY_PUBLIC_TOPIC (shared, screener summary only)."""
     topic = os.environ.get(env, "").strip()
@@ -723,9 +724,11 @@ def notify(title, body, priority=3, tags="chart_with_upwards_trend", click=None,
     if click:
         headers["Click"] = click
         buttons = [f"view, Open report, {click}"]
+        if mine_url:                 # private topic only: straight to the Today tab of your sheet
+            buttons.insert(0, f"view, My positions, {mine_url}")
         if cheat:
             buttons.append(f"view, Cheat sheet, {cheat}")
-        headers["Actions"] = "; ".join(buttons)
+        headers["Actions"] = "; ".join(buttons[:3])
     try:
         r = requests.post(f"https://ntfy.sh/{topic}", data=body.encode("utf-8"), headers=headers, timeout=20)
         print(f"Notification sent ({r.status_code}).")
@@ -903,9 +906,13 @@ def main():
 
     # Positions you hold (private Google Sheet). Results go to the sheet and the
     # notification only, never to the public report.
+    mine_url = None
     try:
         import positions as P
         pres, sells, pline = P.run_positions(S, cfg, data, tickers)
+        sid = os.environ.get("POSITIONS_SHEET_ID", "").strip()
+        if pres is not None and sid:
+            mine_url = P.TODAY_URL or f"https://docs.google.com/spreadsheets/d/{sid}/edit"
     except Exception as e:
         print(f"Positions check failed: {type(e).__name__}: {e}")
         pres, sells, pline = None, [], f"Positions: check failed ({type(e).__name__})."
@@ -921,7 +928,7 @@ def main():
     url = os.environ.get("REPORT_URL")
     cheat = (url.rstrip("/") + "/cheatsheet.html") if url else None
     if has_buy or pos_action or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":
-        notify(title, body, prio, click=url, cheat=cheat)
+        notify(title, body, prio, click=url, cheat=cheat, mine_url=mine_url)
     if notes:
         pub_body += "\nNote: " + " ".join(notes)
     if has_buy or os.environ.get("NOTIFY_ONLY_ON_BUY", "").lower() != "true":

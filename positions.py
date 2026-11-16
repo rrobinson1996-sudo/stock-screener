@@ -45,7 +45,9 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-SKIP_TABS = {"how to use", "compare", "cash"}
+SKIP_TABS = {"how to use", "compare", "cash", "today"}
+TODAY_TAB = "Today"
+TODAY_URL = None          # set after a run: link to the Today tab, for the notification button
 CASH_TAB = "Cash"
 HOLD_DAYS = 60
 STRONG_OK_FAILS = {"Regime", "NotExtended", "NoEarnings", "RoomToTarget"}   # entry-only gates; irrelevant once held
@@ -312,6 +314,37 @@ def summary_line(results, label="Positions"):
     return f"{label}: " + " · ".join(bits)
 
 
+ORDER = ["SELL", "SELL BEFORE EARNINGS", "CHECK", "FIX ROW", "HOLD THROUGH EARNINGS", "EXTEND 60 DAYS",
+         "HOLD", "ADD (OPTIONAL)", "SELLING", "WAITING"]
+
+
+def update_today(sh, every, lines):
+    """Today tab: every position that needs action (or is pending), real account first, then a line per account."""
+    global TODAY_URL
+    try:
+        ws = sh.worksheet(TODAY_TAB)
+    except Exception:
+        return
+    stamp = datetime.now(ZoneInfo(STAMP_TZ)).strftime("%a %b %-d, %-I:%M %p %Z")
+    todo = [r for r in every if r["action"] not in ("No action", "CLOSED")]
+    todo.sort(key=lambda r: (r["paper"], ORDER.index(r["action"]) if r["action"] in ORDER else 99))
+    grid = [["Today: what needs doing", "", "", ""],
+            [f"Updated {stamp} by the daily run. Nothing to type here.", "", "", ""],
+            ["", "", "", ""],
+            ["Account", "Ticker", "Action", "Why"]]
+    if todo:
+        grid += [[account_label(r["tab"]), r["ticker"], r["action"], r["why"]] for r in todo]
+    else:
+        grid.append(["All clear", "", "Nothing to do", "Every open position is fine. Stops stay where they are."])
+    grid += [["", "", "", ""], ["Accounts", "", "", ""]]
+    for ln in lines:
+        name, _, rest = ln.partition(": ")
+        grid.append([name, "", "", rest])
+    grid += [["", "", "", ""]] * max(0, 60 - len(grid))
+    ws.update(range_name=f"A1:D{len(grid)}", values=grid[:60], value_input_option="RAW")
+    TODAY_URL = f"https://docs.google.com/spreadsheets/d/{sh.id}/edit#gid={ws.id}"
+
+
 def account_label(title):
     """Notification label: the Positions tab is the real account; other tabs keep their name."""
     t = title.strip()
@@ -425,4 +458,8 @@ def run_positions(S, cfg, data, universe):
         print(f"Couldn't update the Cash tab: {e}")
     if not books:
         lines = ["Holdings: no account tabs found in your sheet."]
+    try:
+        update_today(sh, every, lines)
+    except Exception as e:
+        print(f"Couldn't update the Today tab: {e}")
     return every, list(dict.fromkeys(sells)), "\n".join(lines)
