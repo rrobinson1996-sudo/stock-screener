@@ -22,7 +22,8 @@ and compared with QQQ over the same days. Open rows get exactly one action:
   7. Fresh BUY again     -> ADD (OPTIONAL), within the 1% risk budget
   8. Otherwise           -> No action, with a status line
 Leave Entry price blank to buy at the open: the system fills it from the open on the
-Entry date (WAITING until that day has traded).
+Entry date (WAITING until that day has traded). Likewise, an Exit date with a blank Exit
+price means "sell at the open": SELLING until that day has traded, then CLOSED.
 The stop is never moved: the backtest showed a fixed stop beat every trailing style.
 Tabs with "paper" or "test" in the name never raise the SELL alert in the title.
 
@@ -118,6 +119,7 @@ def write_results(ws, results, n_rows):
     upd = [{"range": f"H2:M{n_rows}", "values": hm}, {"range": f"S2:S{n_rows}", "values": s}]
     # entry prices the system filled from the open on the entry date
     upd += [{"range": f"D{r['row']}", "values": [[r["filled_entry"]]]} for r in results if r.get("filled_entry")]
+    upd += [{"range": f"R{r['row']}", "values": [[r["filled_exit"]]]} for r in results if r.get("filled_exit")]
     ws.batch_update(upd, value_input_option="USER_ENTERED")
 
 
@@ -371,11 +373,25 @@ def run_positions(S, cfg, data, universe):
             try:
                 qqq = qqq_change(bench, p["entry_date"], p["exit_date"]) if p["entry_date"] is not None else None
                 if p["exit"] is not None or p["exit_date"] is not None:
-                    if p["exit_date"] is None or p["exit"] is None:
+                    filled = None
+                    if p["exit_date"] is not None and p["exit"] is None and p["entry"] is not None:
+                        # blank Exit price = sold at the open on the Exit date
+                        px = _open_on(df, p["exit_date"]) if df is not None and not df.empty and \
+                            pd.Timestamp(p["exit_date"]) <= df.index[-1] else None
+                        if px:
+                            p["exit"] = filled = round(px, 2)
+                    if p["exit_date"] is not None and p["exit"] is None and p["entry"] is not None:
+                        r = dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="", qqq=None,
+                                 action="SELLING", why=f"Planned sale at the open on {p['exit_date'].date()}. "
+                                 "The exit price fills in after that day's run.")
+                    elif p["exit_date"] is None or p["exit"] is None:
                         r = dict(row=p["row"], ticker=p["ticker"], close=None, days=None, health="", qqq=None,
                                  action="FIX ROW", why="Fill in both Exit date and Exit price to close this trade.")
                     else:
                         r = closed_result(p, df, qqq)
+                        if filled:
+                            r["filled_exit"] = filled
+                            r["why"] = f"Sold at the {p['exit_date'].date()} open, ${filled:,.2f}. " + r["why"]
                 else:
                     fe = fill_entry(p, df)
                     if fe == "waiting":
@@ -397,7 +413,7 @@ def run_positions(S, cfg, data, universe):
             print(f"Couldn't write results back to {ws.title}: {e}")
         paper = is_paper(ws.title)
         if not paper:
-            sells += [r["ticker"] for r in results if r["action"].startswith("SELL")]
+            sells += [r["ticker"] for r in results if r["action"].startswith("SELL") and r["action"] != "SELLING"]
         lines.append(summary_line(results, account_label(ws.title)))
         print(f"[{ws.title}]{' (paper)' if paper else ''}")
         for r in results:
