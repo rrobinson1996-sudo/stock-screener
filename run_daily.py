@@ -559,7 +559,7 @@ function svg(ch,marks){
  marks=marks.filter(m=>m.price>0).map(m=>Object.assign({lvl:Math.floor(Math.log(m.price)/lb+1e-9)},m))
   .filter(m=>m.lvl>=lo-15&&m.lvl<=hi+15);
  marks.forEach(m=>{lo=Math.min(lo,m.lvl);hi=Math.max(hi,m.lvl);});lo-=3;hi+=3;
- const n=hi-lo+1,gw=cols.length*C,W=L+gw+50,H=T+n*C+B;
+ const n=hi-lo+1,gw=cols.length*C,W=L+gw+58,H=T+n*C+B;
  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
  for(let r=0;r<=n;r++){const y=T+r*C;s+=`<line x1="${L}" y1="${y}" x2="${L+gw}" y2="${y}" class="g"/>`;}
  for(let i=0;i<=cols.length;i++){const x=L+i*C;s+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+n*C}" class="g"/>`;}
@@ -593,7 +593,7 @@ function show(d){
  document.title=tk+' P&F';
  let h=`<div class="card"><div class="row"><span class="tk big" style="font-size:22px">${tk}</span><span>${badge(s.tier)} ${badge(s.flags)} <b style="font-size:18px;margin-left:4px">${s.score!=null?Math.round(s.score):''}</b></span></div>
  <div class="small muted">${s.src} · close $${s.close} · as of ${d.asof}</div><div class="small" style="margin-top:6px">${s.reason||''}</div></div>`;
- if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});
+ if(s.px){const mk=[{price:s.close,label:'Now',cls:'now'}];if(s.stop)mk.push({price:s.stop,label:'Stop',cls:'stop'});if(s.target&&s.target>s.close)mk.push({price:s.target,label:'Target',cls:'tgt'});if(s.px.down&&s.px.down<s.close)mk.push({price:s.px.down,label:'Down tgt',cls:'dtgt'});
   h+=`<h2>Price chart</h2><div class="small muted">${colWord(s.px)} · last signal: ${sigWord(s.px)} · box ${(s.px.box*100).toFixed(2)}% (1&times; its average daily range) · ${s.px.rev}-box reversal</div><div class="small pat">${patLine(s.px)}</div><div class="scroll ch">${svg(s.px,mk)}</div>${patList(s.px)}`;}
  if(s.rs){const bm=s.bench||d.benchmark;h+=`<h2>Relative strength vs ${bm}</h2><div class="small muted">${colWord(s.rs)} · last signal: ${sigWord(s.rs)} · box ${(s.rs.box*100).toFixed(2)}% (1.5&times; the ratio&#39;s average daily move) · rising X's = beating ${bm}</div><div class="small pat">${patLine(s.rs)}</div><div class="scroll ch">${svg(s.rs,[{price:s.rs.last,label:'Now',cls:'now'}])}</div>${patList(s.rs)}`;}
  el.innerHTML=h;document.querySelectorAll('.ch').forEach(x=>x.scrollLeft=x.scrollWidth);
@@ -615,7 +615,7 @@ def build_chart_page():
 .o,.os{{stroke:var(--bad);stroke-width:1.6;fill:none}}.os{{stroke-width:2.6}}
 .ax,.mo,.yr,.ml{{fill:var(--muted);font-size:9px;font-family:-apple-system,Segoe UI,Roboto,sans-serif}}.yr{{font-weight:700}}
 .pt{{font-size:8px;font-weight:700;font-family:-apple-system,Segoe UI,Roboto,sans-serif}}.pt.bull{{fill:var(--good)}}.pt.bear{{fill:var(--bad)}}.pt.info{{fill:var(--muted)}}.pat{{margin:4px 0 6px}}.plist{{margin:8px 0 4px}}.plist summary{{cursor:pointer;color:var(--muted)}}.plist .scroll{{margin-top:6px}}.pt-bull{{color:var(--good)}}.pt-bear{{color:var(--bad)}}.pt-info{{color:var(--muted)}}.m{{stroke-dasharray:3 3;stroke-width:1.2}}.m.now{{stroke:var(--fg)}}.ml.now{{fill:var(--fg)}}
-.m.stop{{stroke:var(--bad)}}.ml.stop{{fill:var(--bad)}}.m.tgt{{stroke:var(--good)}}.ml.tgt{{fill:var(--good)}}
+.m.stop{{stroke:var(--bad)}}.ml.stop{{fill:var(--bad)}}.m.tgt{{stroke:var(--good)}}.ml.tgt{{fill:var(--good)}}.m.dtgt{{stroke:var(--bad);stroke-dasharray:2 3}}.ml.dtgt{{fill:var(--bad)}}
 select{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font-size:15px;margin:10px 0}}
 </style></head><body><main>
 <div class="row"><h1>P&amp;F Chart</h1><span class="small links"><a href="index.html">Report</a><a href="scores.html">All scores</a></span></div>
@@ -625,7 +625,7 @@ select{{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:1
 <li><b>X</b> = price rising one box; <b>O</b> = falling one box. A new column starts only after a 3-box reversal, so small wiggles are ignored. Time isn't on the axis.</li>
 <li><b>Bold column</b> = that column triggered a signal: an X column above the previous X high is a BUY (double-top breakout); an O column below the previous O low is a SELL.</li>
 <li><b>Numbers along the bottom</b> = month each column started (1&ndash;9, A=Oct, B=Nov, C=Dec), with the year marked where it changes.</li>
-<li><b>Lines:</b> Now = latest close · <span style="color:var(--bad)">Stop</span> = {S.CONFIG["stop_atr_mult"]:g}&times;ATR stop · <span style="color:var(--good)">Target</span> = measured-move objective.</li>
+<li><b>Lines:</b> Now = latest close · <span style="color:var(--bad)">Stop</span> = {S.CONFIG["stop_atr_mult"]:g}&times;ATR stop · <span style="color:var(--good)">Target</span> = measured-move objective · <span style="color:var(--bad)">Down tgt</span> (dotted) = the same measured move projected down after a P&amp;F sell signal. Learning only: no rule uses it and it isn&#39;t backtested.</li>
 <li><b>Relative-strength chart:</b> the stock divided by QQQ. Rising X's mean it's beating the index, the core leadership test.</li>
 <li><b>Why the two charts use different box sizes:</b> each box is sized to how much that line normally moves, so a signal means the same thing on a calm stock and a volatile one. The price box is 1&times; the stock's average daily range (ATR over 20 days) as a percent of price. The relative-strength line has no daily high or low, so its box is 1.5&times; its average daily move over 100 days. It usually moves less than the price, so its boxes are often smaller. Both are rounded to 0.25% and kept between 0.5% and 6%, and they're set fresh each day from the latest data.</li>
 <li>The chart opens at the latest column; swipe left to see history.</li></ul></div>

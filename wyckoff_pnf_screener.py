@@ -375,10 +375,30 @@ def pnf_chart_data(series, box_pct, reversal, max_cols=60):
             day(c.get("si")), day(c.get("ie"))]
            for c in cols[-max_cols:]]
     last = sigs[-1] if sigs else None
+    down = downside_objective(cols, last, box_pct)
     return dict(box=round(float(box_pct), 5), rev=int(reversal), cols=out,
                 last=round(float(s.iloc[-1]), 4),
                 signal=last[0] if last else None,
-                bars_ago=int(n - 1 - last[2]) if last else None)
+                bars_ago=int(n - 1 - last[2]) if last else None,
+                down=round(down, 4) if down and down < float(s.iloc[-1]) else None)
+
+
+def downside_objective(cols, last, box_pct):
+    """Chart-only, educational: the mirror of the 1x measured move for a SELL signal.
+    Height of the first O column off the most recent high, projected down from the
+    breakdown level. Not used by any rule and not backtested."""
+    if not last or last[0] != "SELL":
+        return None
+    recent = cols[-7:]
+    x_idx = [k for k, c in enumerate(recent) if c["type"] == "X"]
+    if not x_idx:
+        return None
+    j = max(x_idx, key=lambda k: recent[k]["top"])
+    if j + 1 >= len(recent):
+        return None
+    th = recent[j + 1]
+    boxes = th["top"] - th["bottom"] + 1
+    return (1 + box_pct) ** (last[3] - boxes)
 
 
 def box_sizes(df, rs, pos, rpos, cfg):
